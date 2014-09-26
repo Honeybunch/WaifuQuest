@@ -7,8 +7,8 @@ using MiniJSON;
 [CustomEditor (typeof(MapCreator))]
 public class MapCreatorEditor : Editor
 {
-	public static int mapWidth = 50;
-	public static int mapHeight = 50;
+	public int mapWidth = 30;
+	public int mapHeight = 30;
 
 	/// <summary>
 	/// For creating the Inspector GUI
@@ -19,8 +19,8 @@ public class MapCreatorEditor : Editor
 		EditorGUILayout.Space();
 
 		//Sliders for creating new maps
-		mapWidth = EditorGUILayout.IntSlider("Map Width:", mapWidth, 1, 100);
-		mapHeight = EditorGUILayout.IntSlider("Map Height:", mapHeight, 1, 100);
+		mapWidth = EditorGUILayout.IntSlider("Map Width:", mapWidth, 1, 60);
+		mapHeight = EditorGUILayout.IntSlider("Map Height:", mapHeight, 1, 60);
 	
 		EditorGUILayout.Space();
 
@@ -34,5 +34,8 @@ public class MapCreatorEditor : Editor
 
 		GUILayout.Button("Load Map");
 		GUILayout.Button("Save Map");
+
+		//Save editor changes
+		EditorUtility.SetDirty((MapCreator)target);
 	}
 }

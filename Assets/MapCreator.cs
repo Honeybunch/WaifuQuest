@@ -3,7 +3,6 @@ using UnityEditor;
 using System.Collections;
 
 public class MapCreator : MonoBehaviour {
-
 	
 	/// <summary>
 	/// Creates a new map of the given size
@@ -36,29 +35,42 @@ public class MapCreator : MonoBehaviour {
 		float startY = (y/2) * -tileWidth;
 
 		//The prefab we want to load for tiling
-		GameObject tileBase = (GameObject)Resources.Load("TileBase");
+		GameObject tileBase = (GameObject)Resources.Load("Prefabs/TileBase");
 
 		GameObject map = new GameObject();
 		Map mapComponent = map.AddComponent<Map>();
 		map.name = "Map";
+
+		mapComponent.startX = startX;
+		mapComponent.startY = startY;
+		mapComponent.width = x;
+		mapComponent.height = y;
+		mapComponent.tileWidth = tileWidth;
 
 		for(int i =0 ; i < x; i++)
 		{
 			for(int j=0; j < y; j++)
 			{
 				GameObject newTile = (GameObject)Instantiate(tileBase);
+				newTile.AddComponent<Tile>();
+				Tile tileComponent = newTile.GetComponent<Tile>();
 
 				float newX = startX + (tileWidth * i);
 				float newY = startY + (tileWidth * j);
 
 				Vector3 newPos = new Vector3(newX, newY, 0);
 
+				tileComponent.x = newX;
+				tileComponent.y = newY;
+				tileComponent.passable = true;
+				tileComponent.textureName = "GrassTileTexture";
+
 				newTile.transform.position = newPos;
 
 				//Add tile to map so that it's nice and organized
 				newTile.transform.parent = map.transform;
 				//Also add the new tile to the Map's internal list of tiles
-
+				mapComponent.Tiles.Add(newTile);
 			}
 		}
 
