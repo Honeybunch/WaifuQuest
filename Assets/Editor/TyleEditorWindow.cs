@@ -42,6 +42,10 @@ public class TyleEditorWindow : EditorWindow
 	private Vector2 textureScrollPosition = Vector2.zero;
 	private Vector2 selectionScrollPosition = Vector2.zero;
 
+	private float scrollViewWidth; 
+	private float scrollViewHeight;
+	private float inspectorWidth;
+
 	private int brushSize = 32;
 	private int mapWidth = 1024;
 	private int mapHeight = 1024;
@@ -60,153 +64,197 @@ public class TyleEditorWindow : EditorWindow
 	}
 
 	/// <summary>
+	/// Called when the window is enabled; use it to make sure we're displaying the right textures
+	/// </summary>
+	void OnEnable()
+	{
+		GatherTextures();
+	}
+
+	/// <summary>
 	/// For displaying all of the GUI in the window
 	/// </summary>
 	void OnGUI()
 	{
 		//get some sizes that we'll use later
-		float scrollViewWidth = position.width * .75f;
-		float scrollViewHeight = position.height - 24;
+		scrollViewWidth = position.width * .75f;
+		scrollViewHeight = position.height - 24;
 
-		float inspectorWidth = position.width * .25f - 12;
+		inspectorWidth = position.width * .25f - 12;
 
+		DrawMap();
+
+		DrawMapControls();
+	}
+
+	/// <summary>
+	/// Draws the map
+	/// Should be called from OnGUI
+	/// </summary>
+	void DrawMap()
+	{
 		//Scroll view for displaying the texture
 		GUILayout.BeginArea(new Rect(6,6, scrollViewWidth, scrollViewHeight));
-			textureScrollPosition = GUILayout.BeginScrollView(textureScrollPosition);
+		textureScrollPosition = GUILayout.BeginScrollView(textureScrollPosition);
+		
+		if(texture && texture.width > 0 && texture.height > 0)
+			GUILayout.Box (texture, GUILayout.Width(texture.width), GUILayout.Height(texture.height));
+		
+		//Do this here because the events are gathered relative to the layout scope
+		
+		//Get Events
+		Event current = Event.current;
+		
+		
+		//If the mouse is clicked while we're over the map bounds, lets start drawing
+		if(current.isMouse &&
+		   current.mousePosition.x <= mapWidth && current.mousePosition.y <= mapHeight &&
+		   current.mousePosition.x >= 0 && current.mousePosition.y >= 0)
+		{
+			DrawOnMap(current.mousePosition);
+		}
+		
+		GUILayout.EndScrollView();
+		
+		GUILayout.EndArea();
+	}
 
-				if(texture && texture.width > 0 && texture.height > 0)
-				GUILayout.Box (texture, GUILayout.Width(texture.width), GUILayout.Height(texture.height));
-
-				//Do this here because the events are gathered relative to the layout scope
-				
-				//Get Events
-				Event current = Event.current;
-
-
-				//If the mouse is clicked while we're over the map bounds, lets start drawing
-				if(current.isMouse &&
-		   		   current.mousePosition.x <= mapWidth && current.mousePosition.y <= mapHeight &&
-		   		   current.mousePosition.x >= 0 && current.mousePosition.y >= 0)
-				{
-					DrawOnMap(current.mousePosition);
-				}
-
-			GUILayout.EndScrollView();
-
-		GUILayout.EndArea();                 
-
-		//Draw an inspector like set of controls on the right side
+	/// <summary>
+	/// Draws the map controls
+	/// Should be called from OnGUI
+	/// </summary>
+	void DrawMapControls()
+	{
 		GUILayout.BeginArea(new Rect(scrollViewWidth + 6, 6, inspectorWidth, scrollViewHeight));
+		
+		//Ask for which tileset we want to use
+		int newTileIndex = EditorGUILayout.Popup(tileSetIndex, tileSetList.ToArray());
 
-			//Ask for which tileset we want to use
-			int newTileIndex = EditorGUILayout.Popup(tileSetIndex, tileSetList.ToArray());
-			if(newTileIndex != tileSetIndex)
+		//If the tile set changes, repopulate the textures
+		if(newTileIndex != tileSetIndex)
+		{
+			tileSetIndex = newTileIndex;
+			GatherTextures();
+		}
+
+		//BREATHING ROOM
+		EditorGUILayout.Space();
+		//BREATHING ROOM
+		
+		//Draw anther scrollable panel for all the possible textures
+		selectionScrollPosition = 
+			GUILayout.BeginScrollView(selectionScrollPosition, GUILayout.Height(400));
+		
+		selectedTextureIndex = GUILayout.SelectionGrid(selectedTextureIndex, 
+		                                               textureList.ToArray(),
+		                                               1,
+		                                               GUILayout.Width(inspectorWidth - 12),
+		                                               GUILayout.Height(textureList.Count * 64));
+		
+		GUILayout.EndScrollView();
+
+		//BREATHING ROOM
+		EditorGUILayout.Space();
+		//BREATHING ROOM
+		
+		//Brush size just shows the size of the selected texture
+		if(textureList.Count > 0)
+			selectedTexture = textureList[selectedTextureIndex];
+
+		//If we have a texture selectd, show how big that texture is
+		if(selectedTexture)
+			brushSize = selectedTexture.width;
+		
+		GUILayout.Label("Brush Size:\t\t\t\t\t " + brushSize);
+
+		//BREATHING ROOM
+		EditorGUILayout.Space ();
+		EditorGUILayout.Space ();	
+		//BREATHING ROOM
+
+		//Map Creation Tools
+		GUILayout.Label("Map Creation");
+		mapWidth = EditorGUILayout.IntField("Map Width: ", mapWidth);
+		mapHeight = EditorGUILayout.IntField("Map Height: ", mapHeight);
+		
+		//Round mapWidth and mapHeight to nearest power of two
+		mapWidth = Mathf.ClosestPowerOfTwo(mapWidth);
+		mapHeight = Mathf.ClosestPowerOfTwo(mapHeight);
+		
+		if(GUILayout.Button("Create Map"))
+		{
+			//Double check that we want to overwrite the map
+			if(texture && texture.width > 0 && texture.height > 0)
 			{
-				tileSetIndex = newTileIndex;
-				GatherTextures();
-			}
-
-			//Draw anther scrollable panel for all the possible textures
-			selectionScrollPosition = GUILayout.BeginScrollView(selectionScrollPosition, GUILayout.Height(400));
-
-				selectedTextureIndex = GUILayout.SelectionGrid(selectedTextureIndex, 
-		                                    textureList.ToArray(),
-		                                    1,
-		                                    GUILayout.Width(inspectorWidth - 12),
-		                                    GUILayout.Height(textureList.Count * 64));
-
-			GUILayout.EndScrollView();
-
-			EditorGUILayout.Space();
-
-			//Brush size just shows the size of the selected texture
-			if(textureList.Count > 0)
-				selectedTexture = textureList[selectedTextureIndex];
-
-			if(selectedTexture)
-				brushSize = selectedTexture.width;
-
-			GUILayout.Label("Brush Size:\t\t\t\t\t " + brushSize);
-
-			EditorGUILayout.Space ();
-			EditorGUILayout.Space ();	
-
-			//Map Creation Tools
-			GUILayout.Label("Map Creation");
-			mapWidth = EditorGUILayout.IntField("Map Width: ", mapWidth);
-			mapHeight = EditorGUILayout.IntField("Map Height: ", mapHeight);
-
-			//Round mapWidth and mapHeight to nearest power of two
-			mapWidth = Mathf.ClosestPowerOfTwo(mapWidth);
-			mapHeight = Mathf.ClosestPowerOfTwo(mapHeight);
-
-			if(GUILayout.Button("Create Map"))
-		    {
-
-				//Double check that we want to overwrite the map
-				if(texture && texture.width > 0 && texture.height > 0)
+				if(EditorUtility.DisplayDialog("Overwrite Map", "Are you sure you want to overwrite the current map?", "Yes", "No"))
 				{
-					if(EditorUtility.DisplayDialog("Overwrite Map", "Are you sure you want to overwrite the current map?", "Yes", "No"))
-					{
-						tileMap = new Map(mapWidth, mapHeight);
-						texture = new Texture2D(mapWidth, mapHeight);
-					}
-				}
-				else
-				{
+					tileMap = new Map(mapWidth, mapHeight);
 					texture = new Texture2D(mapWidth, mapHeight);
 				}
 			}
-
-			EditorGUILayout.Space ();
-
-			GUILayout.FlexibleSpace();
-
-			//A button for reloading textures from the disk
-			if(GUILayout.Button("Reload Tiles"))
+			else
 			{
-				GatherTileSets();
-				GatherTextures();
+				texture = new Texture2D(mapWidth, mapHeight);
 			}
+		}
 
-			EditorGUILayout.Space();
-
-			//A button for saving out the map
-			if(GUILayout.Button("Save Map"))
-		   	{
-				string mapJson = Map.SerializeMap(tileMap);
-
-				string path = EditorUtility.SaveFilePanel("Save Map", "Assets/Resources/Maps", "NewMap","map");
-
-				//don't continue of they cancel
-				if(string.IsNullOrEmpty(path))
-					return;
-				
-				System.IO.File.WriteAllText(path, mapJson);
-			}	
-
-			//A button for loading a map
-			if(GUILayout.Button("Load Map"))
-			{
-				string path = EditorUtility.OpenFilePanel("Load Map", "Assets/Resources/Maps", "map");
-				
-				//don't continue of they cancel 
-				if(string.IsNullOrEmpty(path))	
-					return;
-
-				string mapJson = System.IO.File.ReadAllText(path);
-
-				tileMap = Map.DeserializeMap(mapJson);
-
-				mapWidth = tileMap.width;
-				mapHeight = tileMap.height;				
-
-				texture = Map.GenerateMap(tileMap);
-
-				Repaint();
-			}
-
+		//Everything after this will be anchored to the bottom of the area
+		GUILayout.FlexibleSpace();
+		
+		DrawMapControlButtons();
+		
 		GUILayout.EndArea();
+	}
+
+	/// <summary>
+	/// Draws the map control buttons
+	/// To be called from DrawMapControls
+	/// </summary>
+	void DrawMapControlButtons()
+	{
+		//A button for reloading textures from the disk
+		if(GUILayout.Button("Reload Tiles"))
+		{
+			GatherTileSets();
+			GatherTextures();
+		}
+		
+		EditorGUILayout.Space();
+		
+		//A button for saving out the map
+		if(GUILayout.Button("Save Map"))
+		{
+			string mapJson = Map.SerializeMap(tileMap);
+			
+			string path = EditorUtility.SaveFilePanel("Save Map", "Assets/Resources/Maps", "NewMap","map");
+			
+			//don't continue of they cancel
+			if(string.IsNullOrEmpty(path))
+				return;
+			
+			System.IO.File.WriteAllText(path, mapJson);
+		}	
+		
+		//A button for loading a map
+		if(GUILayout.Button("Load Map"))
+		{
+			string path = EditorUtility.OpenFilePanel("Load Map", "Assets/Resources/Maps", "map");
+			
+			//don't continue of they cancel 
+			if(string.IsNullOrEmpty(path))	
+				return;
+			
+			string mapJson = System.IO.File.ReadAllText(path);
+			
+			tileMap = Map.DeserializeMap(mapJson);
+			
+			mapWidth = tileMap.width;
+			mapHeight = tileMap.height;				
+			
+			texture = Map.GenerateMap(tileMap);
+			
+			Repaint();
+		}
 	}
 
 	/// <summary>
