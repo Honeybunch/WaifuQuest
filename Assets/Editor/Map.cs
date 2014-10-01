@@ -178,7 +178,7 @@ public class Map {
 	/// <param name="map">The texture of the map</param>
 	public static Texture2D GenerateMap(Map map)
 	{
-		Texture2D textureMap = new Texture2D(map.width, map.height);
+		Texture2D textureMap = TyleEditorUtils.NewTransparentTexture(map.width, map.height);
 
 		//Draw every tile onto the texture
 		foreach(Tile t in map.Tiles)

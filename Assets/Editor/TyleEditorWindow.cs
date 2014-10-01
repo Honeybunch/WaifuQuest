@@ -189,12 +189,12 @@ public class TyleEditorWindow : EditorWindow
 				if(EditorUtility.DisplayDialog("Overwrite Map", "Are you sure you want to overwrite the current map?", "Yes", "No"))
 				{
 					tileMap = new Map(mapWidth, mapHeight);
-					texture = new Texture2D(mapWidth, mapHeight);
+					texture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
 				}
 			}
 			else
 			{
-				texture = new Texture2D(mapWidth, mapHeight);
+				texture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
 			}
 		}
 
