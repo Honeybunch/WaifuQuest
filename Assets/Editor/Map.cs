@@ -70,7 +70,7 @@ public class Map {
 	/// </summary>
 	public void AddTile(int xPos, int yPos, int width, int height, string tileSet, string textureName)
 	{
-		Tile existingTile = DoesTileExist(xPos, yPos, width, height, tileSet, textureName);
+		Tile existingTile = DoesTileExist(xPos, yPos, width, height);
 
 		if(existingTile != null && textureName != existingTile.TextureName)
 		{
@@ -216,7 +216,7 @@ public class Map {
 	/// <param name="yPos">Y position</param>
 	/// <param name="width">Width</param>
 	/// <param name="height">Height</param>
-	private Tile DoesTileExist(int xPos, int yPos, int width, int height, string tileSet, string textureName)
+	private Tile DoesTileExist(int xPos, int yPos, int width, int height)
 	{
 		foreach(Tile t in Tiles)
 		{
@@ -224,8 +224,6 @@ public class Map {
 			bool sameY = (yPos == t.Position.y);
 			bool sameWidth = (width == t.Size.x);
 			bool sameHeight = (height == t.Size.y);
-			bool sameTileSet = (tileSet == t.TileSet);
-			bool sameTextureName = (textureName == t.TextureName);
 			
 			if(sameX && sameY && sameWidth && sameHeight)
 				return t;
