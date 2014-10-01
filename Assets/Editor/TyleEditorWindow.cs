@@ -46,10 +46,7 @@ public class TyleEditorWindow : EditorWindow
 	private int mapWidth = 1024;
 	private int mapHeight = 1024;
 
-	private bool displayGrid = false;
-	private Color gridColor = Color.red;
-
-	private Bounds mapBounds = new Bounds();
+	private Map tileMap;
 
 	/// <summary>
 	/// Init an editor window
@@ -84,8 +81,10 @@ public class TyleEditorWindow : EditorWindow
 				
 				//Get Events
 				Event current = Event.current;
+
+
 				//If the mouse is clicked while we're over the map bounds, lets start drawing
-				if(current.isMouse && 
+				if(current.isMouse &&
 		   		   current.mousePosition.x <= mapWidth && current.mousePosition.y <= mapHeight &&
 		   		   current.mousePosition.x >= 0 && current.mousePosition.y >= 0)
 				{
@@ -140,9 +139,6 @@ public class TyleEditorWindow : EditorWindow
 			//Round mapWidth and mapHeight to nearest power of two
 			mapWidth = Mathf.ClosestPowerOfTwo(mapWidth);
 			mapHeight = Mathf.ClosestPowerOfTwo(mapHeight);
-			
-			mapBounds.size = new Vector3(scrollViewWidth, scrollViewHeight, 0);
-			mapBounds.center = new Vector3(6 + (scrollViewWidth/2),6 + (scrollViewHeight/2),0);
 
 			if(GUILayout.Button("Create Map"))
 		    {
@@ -151,7 +147,10 @@ public class TyleEditorWindow : EditorWindow
 				if(texture && texture.width > 0 && texture.height > 0)
 				{
 					if(EditorUtility.DisplayDialog("Overwrite Map", "Are you sure you want to overwrite the current map?", "Yes", "No"))
+					{
+						tileMap = new Map(mapWidth, mapHeight);
 						texture = new Texture2D(mapWidth, mapHeight);
+					}
 				}
 				else
 				{
@@ -170,9 +169,42 @@ public class TyleEditorWindow : EditorWindow
 				GatherTextures();
 			}
 
+			EditorGUILayout.Space();
+
 			//A button for saving out the map
-			
+			if(GUILayout.Button("Save Map"))
+		   	{
+				string mapJson = Map.SerializeMap(tileMap);
+
+				string path = EditorUtility.SaveFilePanel("Save Map", "Assets/Resources/Maps", "NewMap","map");
+
+				//don't continue of they cancel
+				if(string.IsNullOrEmpty(path))
+					return;
+				
+				System.IO.File.WriteAllText(path, mapJson);
+			}	
+
 			//A button for loading a map
+			if(GUILayout.Button("Load Map"))
+			{
+				string path = EditorUtility.OpenFilePanel("Load Map", "Assets/Resources/Maps", "map");
+				
+				//don't continue of they cancel 
+				if(string.IsNullOrEmpty(path))	
+					return;
+
+				string mapJson = System.IO.File.ReadAllText(path);
+
+				tileMap = Map.DeserializeMap(mapJson);
+
+				mapWidth = tileMap.width;
+				mapHeight = tileMap.height;				
+
+				texture = Map.GenerateMap(tileMap);
+
+				Repaint();
+			}
 
 		GUILayout.EndArea();
 	}
@@ -235,9 +267,6 @@ public class TyleEditorWindow : EditorWindow
 		if(!selectedTexture)
 			return;
 
-		//Center position of where to draw the texture
-		Vector2 texturePos = mousePos + textureScrollPosition - new Vector2(6,6);
-
 		//Get top left point of the texture we want to draw
 		mousePos += new Vector2(brushSize/2, brushSize/2);
 
@@ -254,8 +283,14 @@ public class TyleEditorWindow : EditorWindow
 		//Replace the pixels where we want our texture to be
 		Color[] selectedPixels = selectedTexture.GetPixels();
 
+		//Set the pixels and make sure they ACTUALLY APPLY 
 		texture.SetPixels(targetX, targetY, brushSize, brushSize, selectedPixels, 0);
 		texture.Apply();
+
+		//Add the tile to the map
+		tileMap.AddTile(targetX, targetY, brushSize, brushSize, tileSetList[tileSetIndex], selectedTexture.name);
+
+		//Make sure that the display updates
 		Repaint();
 	}
 }
