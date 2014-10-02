@@ -62,6 +62,46 @@ public class TyleEditorUtils
 		
 		return texture;
 	}
+
+	/// <summary>
+	/// Creates a new texture that is transparent with an outline
+	/// </summary>
+	/// <returns>The outline texture.</returns>
+	/// <param name="color">Color.</param>
+	/// <param name="width">Width.</param>
+	/// <param name="height">Height.</param>
+	/// <param name="lineWidth">Line width.</param>
+	/// <param name="distanceFromEdge">Distance from edge.</param>
+	public static Texture2D NewOutlineTexture(Color color, int width, int height, int lineWidth, int distanceFromEdge)
+	{
+		//We need a transparent starting texture
+		Texture2D texture = NewTransparentTexture(width, height);
+
+		int verticalBlockWidth = lineWidth; 
+		int verticalBlockHeight = height - (2*distanceFromEdge);
+
+		int horizontalBlockWidth = width - (2*distanceFromEdge);
+		int horizontalBlockHeight = lineWidth;
+
+		//Each of these will be used twice to create a radial sort of outline around the texture
+		Color[] verticalBlock = new Color[verticalBlockWidth * verticalBlockHeight];
+		Color[] horizontalBlock = new Color[horizontalBlockWidth * horizontalBlockHeight];
+
+		//Fill both blocks with the color
+		for(int i = 0; i < verticalBlock.Length; i++)
+			verticalBlock[i] = color;
+		for(int i = 0; i < horizontalBlock.Length; i++)
+			horizontalBlock[i] = color;
+
+		//Set them to the parts of the texture
+		texture.SetPixels(distanceFromEdge, distanceFromEdge, verticalBlockWidth, verticalBlockHeight, verticalBlock);
+		texture.SetPixels(width - distanceFromEdge - verticalBlockWidth, distanceFromEdge, verticalBlockWidth, verticalBlockHeight, verticalBlock);
+		texture.SetPixels(distanceFromEdge, distanceFromEdge, horizontalBlockWidth, horizontalBlockHeight, horizontalBlock);
+		texture.SetPixels(distanceFromEdge, height - distanceFromEdge - verticalBlockHeight, verticalBlockWidth, verticalBlockHeight, verticalBlock);
+
+		texture.Apply();
+		return texture;
+	}
 }
 
 

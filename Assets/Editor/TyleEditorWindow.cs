@@ -46,6 +46,9 @@ public class TyleEditorWindow : EditorWindow
 	private Texture2D detailTexture = new Texture2D(0,0);
 
 	private Texture2D backgroundTexture = TyleEditorUtils.NewBasicTexture(Color.gray);
+
+	private Texture2D boundingTexture = new Texture2D(0,0);
+	private Texture2D triggerTexture = new Texture2D(0,0);
 	
 	private Rect selectionOutlineBox = new Rect(0,0,0,0);
 	private Rect detailBox = new Rect(0,0,0,0);
@@ -88,6 +91,7 @@ public class TyleEditorWindow : EditorWindow
 		windowInstance = (TyleEditorWindow)EditorWindow.GetWindow (typeof(TyleEditorWindow));
 	
 		windowInstance.GatherTileSets();
+		windowInstance.GatherTextures();
 	}
 
 	/// <summary>
@@ -125,7 +129,6 @@ public class TyleEditorWindow : EditorWindow
 		{
 			textureScrollPosition = GUILayout.BeginScrollView(textureScrollPosition);
 			{			
-				
 				if(mapTexture && mapTexture.width > 0 && mapTexture.height > 0)
 				{
 					//Draw background texture
