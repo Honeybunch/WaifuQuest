@@ -45,6 +45,23 @@ public class TyleEditorUtils
 
 		return texture;
 	}
+
+	/// <summary>
+	/// Creates a basic texture of a given color
+	/// </summary>
+	/// <returns>The background texture.</returns>
+	public static Texture2D NewBasicTexture(Color color)
+	{
+		//Create a 1x1 texture and just set one pixel, then have it repeat
+		Texture2D texture = new Texture2D(1, 1);
+		
+		texture.SetPixel(0,0, color);
+		texture.wrapMode = TextureWrapMode.Repeat;
+
+		texture.Apply();
+		
+		return texture;
+	}
 }
 
 

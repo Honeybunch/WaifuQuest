@@ -31,6 +31,8 @@ public class Tile {
 	public Vector2 Size;
 	public string TileSet;
 	public string TextureName;
+	public bool Passable;
+	public bool Trigger;
 
 	/// <summary>
 	/// Create a new Tile.
@@ -47,6 +49,26 @@ public class Tile {
 		Size = new Vector2(width, height);
 		TileSet = tileSet;
 		TextureName = textureName;
+		Passable = true;
+		Trigger = false;
+	}
+
+	/// <summary>
+	/// Creates a tile with the passable and trigger flags preset
+	/// </summary>
+	/// <param name="xPos">X position.</param>
+	/// <param name="yPos">Y position.</param>
+	/// <param name="width">Width.</param>
+	/// <param name="height">Height.</param>
+	/// <param name="tileSet">Tile set.</param>
+	/// <param name="textureName">Texture name.</param>
+	/// <param name="passable">If set to <c>true</c> passable.</param>
+	/// <param name="trigger">If set to <c>true</c> trigger.</param>
+	public Tile(int xPos, int yPos, int width, int height, string tileSet, string textureName, bool passable, bool trigger)
+		:this(xPos, yPos, width, height, tileSet, textureName)
+	{
+		Passable = passable;
+		Trigger = trigger;
 	}
 
 	//Allows the converstion from Tile to JSON for serialization
@@ -61,6 +83,8 @@ public class Tile {
 			js["Height"] = tile.Size.y;
 			js["TileSet"] = tile.TileSet;
 			js["TextureName"] = tile.TextureName;
+			js["Passable"] = tile.Passable;
+			js["Trigger"] = tile.Trigger;
 		}          
 		return js;
 	}
@@ -76,8 +100,10 @@ public class Tile {
 			int height = value.ToInt("Height");
 			string tileSet = value.ToString("TileSet");
 			string textureName = value.ToString("TextureName");
+			bool passable = value.ToBoolean("Passable");
+			bool trigger = value.ToBoolean("Trigger");
 
-			return new Tile(x,y,width,height,tileSet, textureName);
+			return new Tile(x,y,width,height,tileSet, textureName, passable, trigger);
 		}
 	}
 

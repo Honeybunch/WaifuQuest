@@ -25,36 +25,58 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
+public enum BrushType
+{
+	Painting,
+	Erasing,
+	BoundingBoxes,
+	Triggers
+}
+
+[ExecuteInEditMode]
 public class TyleEditorWindow : EditorWindow 
 {
 	public static TyleEditorWindow windowInstance;
 
-	public Texture2D mapTexture = new Texture2D(0,0);
-	public Texture2D selectionSpaceTexture = new Texture2D(0,0);
-	public Texture2D boundingBoxTexture = new Texture2D(0,0);
+	private BrushType currentBrush = BrushType.Painting;
+
+	//Textures for various things we need to display on the string
+	private Texture2D mapTexture = new Texture2D(0,0);
+	private Texture2D selectionSpaceTexture = new Texture2D(0,0);
+	private Texture2D detailTexture = new Texture2D(0,0);
+
+	private Texture2D backgroundTexture = TyleEditorUtils.NewBasicTexture(Color.gray);
 	
 	private Rect selectionOutlineBox = new Rect(0,0,0,0);
+	private Rect detailBox = new Rect(0,0,0,0);
 
-	public static List<Texture2D> textureList = new List<Texture2D>();
-	public static List<string> textureNameList = new List<string>();
+	//Selectable and/or indexed variables
 
-	private int selectedTextureIndex;
-	private Texture2D selectedTexture;
-
+	//The tile set chosen at the top of the tools panel
 	private List<string> tileSetList = new List<string>();
 	private int tileSetIndex = 0;
 
+	//The texture we chose from the loaded textures
+	private static List<Texture2D> textureList = new List<Texture2D>();
+	private static List<string> textureNameList = new List<string>();
+	private Texture2D selectedTexture;
+	private int selectedTextureIndex;
+
+	//Scroll positions
 	private Vector2 textureScrollPosition = Vector2.zero;
 	private Vector2 selectionScrollPosition = Vector2.zero;
 
+	//Window dimensions 
 	private float scrollViewWidth; 
 	private float scrollViewHeight;
 	private float inspectorWidth;
 
+	//Map and texture dimensions
 	private int brushSize = 32;
 	private int mapWidth = 1024;
 	private int mapHeight = 1024;
 
+	//The map
 	private Map tileMap;
 
 	/// <summary>
@@ -102,15 +124,25 @@ public class TyleEditorWindow : EditorWindow
 		GUILayout.BeginArea(new Rect(6,6, scrollViewWidth, scrollViewHeight));
 		{
 			textureScrollPosition = GUILayout.BeginScrollView(textureScrollPosition);
-			{
+			{			
+				
 				if(mapTexture && mapTexture.width > 0 && mapTexture.height > 0)
 				{
+					//Draw background texture
+					GUI.DrawTexture(new Rect(0,0, mapTexture.width, mapTexture.height), backgroundTexture, ScaleMode.StretchToFill);
+
+					//Then draw map tiles
 					GUILayout.Box (mapTexture, GUIStyle.none, GUILayout.Width(mapTexture.width), GUILayout.Height(mapTexture.height));
 				}
 
+				//Draw selection 
 				if(selectionSpaceTexture && selectionSpaceTexture.width > 0 && selectionSpaceTexture.height > 0)
-					GUI.Box (selectionOutlineBox, selectionSpaceTexture, GUIStyle.none);
-				
+					GUI.DrawTexture (selectionOutlineBox, selectionSpaceTexture);
+
+				//Draw bounding and trigger details
+				if(detailTexture && detailTexture.width > 0 && detailTexture.height > 0)
+					GUI.DrawTexture(detailBox, detailTexture);
+
 				//Do this here because the events are gathered relative to the layout scope
 				
 				//Get Events
@@ -121,14 +153,35 @@ public class TyleEditorWindow : EditorWindow
 				   current.mousePosition.x <= mapWidth && current.mousePosition.y <= mapHeight &&
 				   current.mousePosition.x >= 0 && current.mousePosition.y >= 0)
 				{
-					PaintTexture(current.mousePosition);
+					//Mouse events based on current brush type
+					switch(currentBrush)
+					{ 
+					case BrushType.BoundingBoxes:
+
+						break;
+					case BrushType.Erasing:
+
+						break;
+					case BrushType.Triggers:
+						break;
+
+					//Default is painting
+					default:
+						PaintTexture(current.mousePosition);
+						break;
+					}
 				}
 
 				//If the mouse is over part of the map, show where a tile may be painted
 				if(current.mousePosition.x <= mapWidth && current.mousePosition.y <= mapHeight &&
-				   current.mousePosition.x >= 0 && current.mousePosition.y >= 0)
+				   current.mousePosition.x >= 0 && current.mousePosition.y >= 0 && tileMap != null)
 				{
 					PaintTileSelection(current.mousePosition);
+				}
+				else
+				{
+					//Clear the selection texture
+					selectionSpaceTexture = TyleEditorUtils.NewTransparentTexture(brushSize, brushSize);
 				}
 			}
 			GUILayout.EndScrollView();
@@ -181,7 +234,14 @@ public class TyleEditorWindow : EditorWindow
 			//BREATHING ROOM
 			EditorGUILayout.Space();
 			//BREATHING ROOM
-			
+
+			//Brush controls
+			currentBrush = (BrushType)EditorGUILayout.EnumPopup("Brush Type", currentBrush);
+
+			//BREATHING ROOM
+			EditorGUILayout.Space();
+			//BREATHING ROOM
+
 			GUILayout.Label("Brush Size:\t\t\t\t\t " + brushSize);
 
 			//BREATHING ROOM
@@ -208,6 +268,9 @@ public class TyleEditorWindow : EditorWindow
 						tileMap = new Map(mapWidth, mapHeight);
 						mapTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
 						selectionSpaceTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
+						detailTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
+
+						detailBox = new Rect(0,0, mapWidth, mapHeight);
 					}
 				}
 				else
@@ -215,6 +278,9 @@ public class TyleEditorWindow : EditorWindow
 					tileMap = new Map(mapWidth, mapHeight);
 					mapTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
 					selectionSpaceTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
+					detailTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
+
+					detailBox = new Rect(0,0, mapWidth, mapHeight);
 				}
 			}
 
