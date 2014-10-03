@@ -50,14 +50,17 @@ public class TyleEditorUtils
 	/// Creates a basic texture of a given color
 	/// </summary>
 	/// <returns>The background texture.</returns>
-	public static Texture2D NewBasicTexture(Color color)
+	public static Texture2D NewBasicTexture(Color color, int width, int height)
 	{
 		//Create a 1x1 texture and just set one pixel, then have it repeat
-		Texture2D texture = new Texture2D(1, 1);
+		Texture2D texture = new Texture2D(width, height);
 		
-		texture.SetPixel(0,0, color);
-		texture.wrapMode = TextureWrapMode.Repeat;
+		Color[] colors = new Color[width * height];
 
+		for(int i = 0; i < colors.Length; i++)
+			colors[i] = color;
+
+		texture.SetPixels(colors);
 		texture.Apply();
 		
 		return texture;
@@ -97,7 +100,7 @@ public class TyleEditorUtils
 		texture.SetPixels(distanceFromEdge, distanceFromEdge, verticalBlockWidth, verticalBlockHeight, verticalBlock);
 		texture.SetPixels(width - distanceFromEdge - verticalBlockWidth, distanceFromEdge, verticalBlockWidth, verticalBlockHeight, verticalBlock);
 		texture.SetPixels(distanceFromEdge, distanceFromEdge, horizontalBlockWidth, horizontalBlockHeight, horizontalBlock);
-		texture.SetPixels(distanceFromEdge, height - distanceFromEdge - verticalBlockHeight, verticalBlockWidth, verticalBlockHeight, verticalBlock);
+		texture.SetPixels(distanceFromEdge, height - distanceFromEdge - horizontalBlockHeight, horizontalBlockWidth, horizontalBlockHeight, horizontalBlock);
 
 		texture.Apply();
 		return texture;

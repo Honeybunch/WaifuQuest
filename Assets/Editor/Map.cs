@@ -70,7 +70,7 @@ public class Map {
 	/// </summary>
 	public void AddTile(int xPos, int yPos, int width, int height, string tileSet, string textureName)
 	{
-		Tile existingTile = DoesTileExist(xPos, yPos, width, height);
+		Tile existingTile = GetTile(xPos, yPos, width, height);
 
 		if(existingTile != null && textureName != existingTile.TextureName)
 		{
@@ -84,6 +84,52 @@ public class Map {
 			Tile newTile = new Tile(xPos, yPos, width, height, tileSet, textureName);
 			Tiles.Add(newTile);
 		}
+	}
+
+	/// <summary>
+	/// Return a tile at this point with this width and height
+	/// </summary>
+	/// <returns>The tile</returns>
+	/// <param name="xPos">X position</param>
+	/// <param name="yPos">Y position</param>
+	/// <param name="width">Width</param>
+	/// <param name="height">Height</param>
+	public Tile GetTile(int xPos, int yPos, int width, int height)
+	{
+		foreach(Tile t in Tiles)
+		{
+			bool sameX = (xPos == t.Position.x);
+			bool sameY = (yPos == t.Position.y);
+			bool sameWidth = (width == t.Size.x);
+			bool sameHeight = (height == t.Size.y);
+			
+			if(sameX && sameY && sameWidth && sameHeight)
+				return t;
+		}
+		
+		//If we get here without returning a tile, it doesn't exist so return null
+		return null;
+	}
+
+	/// <summary>
+	/// Return a tile at the given position
+	/// </summary>
+	/// <returns>The tile</returns>
+	/// <param name="xPos">X position</param>
+	/// <param name="yPos">Y position</param>
+	public Tile GetTile(int xPos, int yPos)
+	{
+		foreach(Tile t in Tiles)
+		{
+			bool sameX = (xPos == t.Position.x);
+			bool sameY = (yPos == t.Position.y);
+			
+			if(sameX && sameY)
+				return t;
+		}
+		
+		//If we get here without returning a tile, it doesn't exist so return null
+		return null;
 	}
 
 	/// <summary>
@@ -202,34 +248,5 @@ public class Map {
 		textureMap.Apply();
 
 		return textureMap;
-	}
-
-	/*
-	 * Private Methods
-	 */
-
-	/// <summary>
-	/// Does a tile exist at this point with this width and height?
-	/// </summary>
-	/// <returns>The tile</returns>
-	/// <param name="xPos">X position</param>
-	/// <param name="yPos">Y position</param>
-	/// <param name="width">Width</param>
-	/// <param name="height">Height</param>
-	private Tile DoesTileExist(int xPos, int yPos, int width, int height)
-	{
-		foreach(Tile t in Tiles)
-		{
-			bool sameX = (xPos == t.Position.x);
-			bool sameY = (yPos == t.Position.y);
-			bool sameWidth = (width == t.Size.x);
-			bool sameHeight = (height == t.Size.y);
-			
-			if(sameX && sameY && sameWidth && sameHeight)
-				return t;
-		}
-
-		//If we get here without returning a tile, it doesn't exist so return null
-		return null;
 	}
 }

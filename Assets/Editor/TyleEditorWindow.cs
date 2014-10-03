@@ -45,10 +45,7 @@ public class TyleEditorWindow : EditorWindow
 	private Texture2D selectionSpaceTexture = new Texture2D(0,0);
 	private Texture2D detailTexture = new Texture2D(0,0);
 
-	private Texture2D backgroundTexture = TyleEditorUtils.NewBasicTexture(Color.gray);
-
-	private Texture2D boundingTexture = new Texture2D(0,0);
-	private Texture2D triggerTexture = new Texture2D(0,0);
+	private Texture2D backgroundTexture = TyleEditorUtils.NewBasicTexture(Color.gray,1,1);
 	
 	private Rect selectionOutlineBox = new Rect(0,0,0,0);
 	private Rect detailBox = new Rect(0,0,0,0);
@@ -129,62 +126,100 @@ public class TyleEditorWindow : EditorWindow
 		{
 			textureScrollPosition = GUILayout.BeginScrollView(textureScrollPosition);
 			{			
-				if(mapTexture && mapTexture.width > 0 && mapTexture.height > 0)
+				//This if block just prevents a bunch of null pointer errors later on
+				if(tileMap != null)
 				{
-					//Draw background texture
-					GUI.DrawTexture(new Rect(0,0, mapTexture.width, mapTexture.height), backgroundTexture, ScaleMode.StretchToFill);
 
-					//Then draw map tiles
-					GUILayout.Box (mapTexture, GUIStyle.none, GUILayout.Width(mapTexture.width), GUILayout.Height(mapTexture.height));
-				}
+					if(mapTexture && mapTexture.width > 0 && mapTexture.height > 0)
+					{
+						//Draw background texture
+						GUI.DrawTexture(new Rect(0,0, mapTexture.width, mapTexture.height), backgroundTexture, ScaleMode.StretchToFill);
 
-				//Draw selection 
-				if(selectionSpaceTexture && selectionSpaceTexture.width > 0 && selectionSpaceTexture.height > 0)
-					GUI.DrawTexture (selectionOutlineBox, selectionSpaceTexture);
-
-				//Draw bounding and trigger details
-				if(detailTexture && detailTexture.width > 0 && detailTexture.height > 0)
-					GUI.DrawTexture(detailBox, detailTexture);
-
-				//Do this here because the events are gathered relative to the layout scope
-				
-				//Get Events
-				Event current = Event.current;
-
-				//If the mouse is clicked while we're over the map bounds, lets start drawing
-				if(current.isMouse &&
-				   current.mousePosition.x <= mapWidth && current.mousePosition.y <= mapHeight &&
-				   current.mousePosition.x >= 0 && current.mousePosition.y >= 0)
-				{
-					//Mouse events based on current brush type
-					switch(currentBrush)
-					{ 
-					case BrushType.BoundingBoxes:
-
-						break;
-					case BrushType.Erasing:
-
-						break;
-					case BrushType.Triggers:
-						break;
-
-					//Default is painting
-					default:
-						PaintTexture(current.mousePosition);
-						break;
+						//Then draw map tiles
+						GUILayout.Box (mapTexture, GUIStyle.none, GUILayout.Width(mapTexture.width), GUILayout.Height(mapTexture.height));
 					}
-				}
 
-				//If the mouse is over part of the map, show where a tile may be painted
-				if(current.mousePosition.x <= mapWidth && current.mousePosition.y <= mapHeight &&
-				   current.mousePosition.x >= 0 && current.mousePosition.y >= 0 && tileMap != null)
-				{
-					PaintTileSelection(current.mousePosition);
-				}
-				else
-				{
-					//Clear the selection texture
-					selectionSpaceTexture = TyleEditorUtils.NewTransparentTexture(brushSize, brushSize);
+					//Draw selection 
+					if(selectionSpaceTexture && selectionSpaceTexture.width > 0 && selectionSpaceTexture.height > 0)
+						GUI.DrawTexture (selectionOutlineBox, selectionSpaceTexture);
+
+					//Draw bounding and trigger details
+					if(detailTexture && detailTexture.width > 0 && detailTexture.height > 0)
+						GUI.DrawTexture(detailBox, detailTexture);
+
+					//Do this here because the events are gathered relative to the layout scope
+					
+					//Get Events
+					Event current = Event.current;
+
+					Vector2 targetPos = GetTopLeftOfQuadrant(current.mousePosition);
+
+					//Keep things refreshed
+					if(current != null)
+						Repaint();
+
+					//If the mouse is clicked while we're over the map bounds, lets start drawing
+					if(current.isMouse &&
+					   current.mousePosition.x <= mapWidth && current.mousePosition.y <= mapHeight &&
+					   current.mousePosition.x >= 0 && current.mousePosition.y >= 0)
+					{
+						//Mouse events based on current brush type
+						switch(currentBrush)
+						{ 
+						case BrushType.BoundingBoxes:
+							//Modify Tile at that position
+							Tile tileToMakeImpassible = tileMap.GetTile((int)targetPos.x, (int)targetPos.y);
+							
+							if(tileToMakeImpassible != null)
+							{
+								tileToMakeImpassible.Passable = false;
+								tileToMakeImpassible.Trigger = false;
+								
+								Texture2D boundingTexture = TyleEditorUtils.NewOutlineTexture(Color.red, brushSize, brushSize, 5, 5);
+								Paint (targetPos, boundingTexture, detailTexture);
+							}
+							break;
+						case BrushType.Erasing:
+
+							break;
+						case BrushType.Triggers:
+							//Modify Tile at that position
+							Tile tileToMakeTrigger = tileMap.GetTile((int)targetPos.x, (int)targetPos.y);
+
+							if(tileToMakeTrigger != null)
+							{
+								tileToMakeTrigger.Passable = true;
+								tileToMakeTrigger.Trigger = true;
+
+								Texture2D triggerTexture = TyleEditorUtils.NewOutlineTexture(Color.blue, brushSize, brushSize, 5, 15);
+								Paint (targetPos, triggerTexture, detailTexture);
+							}
+							break;
+						//Default is painting
+						default:
+							Paint (targetPos, selectedTexture, mapTexture);
+							//Add the tile to the map
+							tileMap.AddTile((int)targetPos.x, (int)targetPos.y, brushSize, brushSize, tileSetList[tileSetIndex], selectedTexture.name);
+							break;
+						}
+					}
+
+					//If the mouse is over part of the map, show where a tile may be painted
+					if(current.mousePosition.x <= mapWidth && current.mousePosition.y <= mapHeight &&
+					   current.mousePosition.x >= 0 && current.mousePosition.y >= 0 && tileMap != null)
+					{
+						//Create a texture of the size of the brush
+						Color selectionColor = new Color(0.8f, 0.8f, 0.8f, 0.3f);
+
+						selectionSpaceTexture = TyleEditorUtils.NewBasicTexture(selectionColor, brushSize, brushSize);
+						selectionSpaceTexture.Apply();
+						selectionOutlineBox = new Rect(targetPos.x, mapWidth - targetPos.y - brushSize, brushSize, brushSize);
+					}
+					else
+					{
+						//Clear the selection texture
+						selectionSpaceTexture = TyleEditorUtils.NewTransparentTexture(brushSize, brushSize);
+					}
 				}
 			}
 			GUILayout.EndScrollView();
@@ -408,72 +443,49 @@ public class TyleEditorWindow : EditorWindow
 	}
 
 	/// <summary>
-	/// Draws the on map at the given position, taking into account the scrolling offsets
+	/// Gets the top left of quadrant that the given vector resides within
 	/// </summary>
-	/// <param name="mousePos">Mouse position.</param>
-	void PaintTexture(Vector2 mousePos)
+	/// <returns>The top left of quadrant.</returns>
+	/// <param name="position">Position.</param>
+	Vector2 GetTopLeftOfQuadrant(Vector2 position)
 	{
-		//If there is no selected texture or no tile map, don't try to draw
-		if(selectedTexture == null || tileMap == null)
-			return;
-
-		//Get top left point of the texture we want to draw
-		mousePos += new Vector2(brushSize/2, brushSize/2);
-
-		int targetX = (int)(Mathf.Round(mousePos.x / brushSize) * brushSize);
-		int targetY = (int)(Mathf.Round(mousePos.y / brushSize) * brushSize);
-
+		position += new Vector2(brushSize/2, brushSize/2);
+		
+		int targetX = (int)(Mathf.Round(position.x / brushSize) * brushSize);
+		int targetY = (int)(Mathf.Round(position.y / brushSize) * brushSize);
+		
 		//Reorient target pos to top left rather than bottom left
 		targetX -= brushSize;
 		targetY = mapWidth - targetY;
-
+		
 		targetX = Mathf.Clamp(targetX, 0, mapWidth - brushSize);
 		targetY = Mathf.Clamp(targetY, 0, mapHeight - brushSize);
 
-		//Replace the pixels where we want our texture to be
-		Color[] selectedPixels = selectedTexture.GetPixels();
-
-		//Set the pixels and make sure they ACTUALLY APPLY 
-		mapTexture.SetPixels(targetX, targetY, brushSize, brushSize, selectedPixels, 0);
-		mapTexture.Apply();
-
-		//Add the tile to the map
-		tileMap.AddTile(targetX, targetY, brushSize, brushSize, tileSetList[tileSetIndex], selectedTexture.name);
-
-		//Make sure that the display updates
-		Repaint();
+		return new Vector2(targetX, targetY);
 	}
 
 	/// <summary>
-	/// Paints where a tile will be painted 
+	/// Paint the source texture onto the destination texture at the specified position
 	/// </summary>
-	/// <param name="mousePos">Mouse position.</param>
-	void PaintTileSelection(Vector2 mousePos)
+	/// <param name="postion">Postion.</param>
+	/// <param name="sourceTexture">Source texture.</param>
+	/// <param name="destinationTexture">Destination texture.</param>
+	void Paint(Vector2 postion, Texture2D sourceTexture, Texture2D destinationTexture)
 	{
-		//Get top left point of the texture we want to draw
-		mousePos += new Vector2(brushSize/2, brushSize/2);
-		
-		int targetX = (int)(Mathf.Round(mousePos.x / brushSize) * brushSize);
-		int targetY = (int)(Mathf.Round(mousePos.y / brushSize) * brushSize);
-		
-		//Reorient target pos to top left rather than bottom left
-		targetX -= brushSize;
-		targetY -= brushSize;
-		
-		targetX = Mathf.Clamp(targetX, 0, mapWidth - brushSize);
-		targetY = Mathf.Clamp(targetY, 0, mapHeight - brushSize);
-	
-		//Apply the selectionPixels
-		Color[] outlinePixels = new Color[brushSize* brushSize];
-		for(int i =0; i < outlinePixels.Length; i++)
-			outlinePixels[i] = new Color(0.0f, 1.0f, 0.0f, 0.3f);
+		if(sourceTexture == null || destinationTexture == null)
+			return;
 
-		selectionSpaceTexture = new Texture2D(brushSize, brushSize);
-		selectionSpaceTexture.SetPixels(outlinePixels);
-		selectionSpaceTexture.Apply();
+		int targetX = (int)postion.x;
+		int targetY = (int)postion.y;
 
-		selectionOutlineBox = new Rect(targetX, targetY, brushSize, brushSize);
+		//Replace the pixels where we want our texture to be
+		Color[] sourcePixels = sourceTexture.GetPixels();
 
+		//Set the pixels and make sure they ACTUALLY APPLY 
+		destinationTexture.SetPixels(targetX, targetY, brushSize, brushSize, sourcePixels, 0);
+		destinationTexture.Apply();
+		
+		//Make sure that the display updates
 		Repaint();
 	}
 }
