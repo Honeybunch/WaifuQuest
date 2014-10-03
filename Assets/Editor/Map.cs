@@ -218,11 +218,11 @@ public class Map {
 	}
 
 	/// <summary>
-	/// Generates the map texture and colliders
+	/// Generates the map texture
 	/// </summary>
 	/// <returns>The map.</returns>
 	/// <param name="map">The texture of the map</param>
-	public static Texture2D GenerateMap(Map map)
+	public static Texture2D GenerateMapTexture(Map map)
 	{
 		Texture2D textureMap = TyleEditorUtils.NewTransparentTexture(map.width, map.height);
 
@@ -248,5 +248,41 @@ public class Map {
 		textureMap.Apply();
 
 		return textureMap;
+	}
+
+	public static Texture2D GenerateDetailTexture(Map map)
+	{
+		Texture2D detailMapTexture = TyleEditorUtils.NewTransparentTexture(map.width, map.height);
+
+		//Draw every trigger and collider onto the map
+		foreach(Tile t in map.Tiles)
+		{
+			int x = (int)t.Position.x;
+			int y = (int)t.Position.y;
+			int w = (int)t.Size.x;
+			int h = (int)t.Size.y;
+			bool passable = t.Passable;
+			bool trigger = t.Trigger;
+
+			Texture2D detailTexture;
+
+			//Determine wheter to draw bounding box or trigger
+			if(!passable)
+				detailTexture = TyleEditorUtils.NewOutlineTexture(Color.red, w, h, 5, 0);			
+			else if(trigger)
+				detailTexture = TyleEditorUtils.NewOutlineTexture(Color.blue, w, h, 5, 10);
+			//Give it a transparent texture in case that it's neither
+			else
+				detailTexture = TyleEditorUtils.NewTransparentTexture(w,h);
+
+			Color[] detailPixels = detailTexture.GetPixels();
+
+			//Set the pixels
+			detailMapTexture.SetPixels(x, y, w, h, detailPixels);
+		}
+
+		detailMapTexture.Apply();
+
+		return detailMapTexture;
 	}
 }

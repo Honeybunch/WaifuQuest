@@ -28,7 +28,6 @@ using System.IO;
 public enum BrushType
 {
 	Painting,
-	Erasing,
 	BoundingBoxes,
 	Triggers
 }
@@ -39,6 +38,7 @@ public class TyleEditorWindow : EditorWindow
 	public static TyleEditorWindow windowInstance;
 
 	private BrushType currentBrush = BrushType.Painting;
+	private bool erasing = false;
 
 	//Textures for various things we need to display on the string
 	private Texture2D mapTexture = new Texture2D(0,0);
@@ -133,7 +133,8 @@ public class TyleEditorWindow : EditorWindow
 					if(mapTexture && mapTexture.width > 0 && mapTexture.height > 0)
 					{
 						//Draw background texture
-						GUI.DrawTexture(new Rect(0,0, mapTexture.width, mapTexture.height), backgroundTexture, ScaleMode.StretchToFill);
+						if(backgroundTexture)
+							GUI.DrawTexture(new Rect(0,0, mapTexture.width, mapTexture.height), backgroundTexture, ScaleMode.StretchToFill);
 
 						//Then draw map tiles
 						GUILayout.Box (mapTexture, GUIStyle.none, GUILayout.Width(mapTexture.width), GUILayout.Height(mapTexture.height));
@@ -167,39 +168,77 @@ public class TyleEditorWindow : EditorWindow
 						switch(currentBrush)
 						{ 
 						case BrushType.BoundingBoxes:
-							//Modify Tile at that position
-							Tile tileToMakeImpassible = tileMap.GetTile((int)targetPos.x, (int)targetPos.y);
-							
-							if(tileToMakeImpassible != null)
+
+							if(!erasing)
 							{
-								tileToMakeImpassible.Passable = false;
-								tileToMakeImpassible.Trigger = false;
+								//Modify Tile at that position
+								Tile tileToMakeImpassible = tileMap.GetTile((int)targetPos.x, (int)targetPos.y);
 								
-								Texture2D boundingTexture = TyleEditorUtils.NewOutlineTexture(Color.red, brushSize, brushSize, 5, 5);
-								Paint (targetPos, boundingTexture, detailTexture);
+								if(tileToMakeImpassible != null)
+								{
+									tileToMakeImpassible.Passable = false;
+									tileToMakeImpassible.Trigger = false;
+									
+									Texture2D boundingTexture = TyleEditorUtils.NewOutlineTexture(Color.red, brushSize, brushSize, 5, 0);
+									Paint (targetPos, boundingTexture, detailTexture);
+								}
 							}
-							break;
-						case BrushType.Erasing:
+							else
+							{
+								//Remove the tile detail at the given position 
+								Texture2D erasingTexture = TyleEditorUtils.NewTransparentTexture(brushSize, brushSize);
+								Paint (targetPos, erasingTexture, detailTexture);
+								
+								Tile tileToMakePassible = tileMap.GetTile((int)targetPos.x, (int)targetPos.y, brushSize, brushSize);
+								if(tileToMakePassible != null)
+									tileToMakePassible.Passable = true;
+							}
 
 							break;
 						case BrushType.Triggers:
-							//Modify Tile at that position
-							Tile tileToMakeTrigger = tileMap.GetTile((int)targetPos.x, (int)targetPos.y);
-
-							if(tileToMakeTrigger != null)
+							if(!erasing)
 							{
-								tileToMakeTrigger.Passable = true;
-								tileToMakeTrigger.Trigger = true;
+								//Modify Tile at that position
+								Tile tileToMakeTrigger = tileMap.GetTile((int)targetPos.x, (int)targetPos.y);
 
-								Texture2D triggerTexture = TyleEditorUtils.NewOutlineTexture(Color.blue, brushSize, brushSize, 5, 15);
-								Paint (targetPos, triggerTexture, detailTexture);
+								if(tileToMakeTrigger != null)
+								{
+									tileToMakeTrigger.Passable = true;
+									tileToMakeTrigger.Trigger = true;
+
+									Texture2D triggerTexture = TyleEditorUtils.NewOutlineTexture(Color.blue, brushSize, brushSize, 5, 10);
+									Paint (targetPos, triggerTexture, detailTexture);
+								}
+							}else
+							{
+								//Remove the tile detail at the given position 
+								Texture2D erasingTexture = TyleEditorUtils.NewTransparentTexture(brushSize, brushSize);
+								Paint (targetPos, erasingTexture, detailTexture);
+								
+								Tile tileToMakeNotTrigger = tileMap.GetTile((int)targetPos.x, (int)targetPos.y, brushSize, brushSize);
+								if(tileToMakeNotTrigger != null)
+									tileToMakeNotTrigger.Trigger = false;
 							}
 							break;
 						//Default is painting
 						default:
-							Paint (targetPos, selectedTexture, mapTexture);
-							//Add the tile to the map
-							tileMap.AddTile((int)targetPos.x, (int)targetPos.y, brushSize, brushSize, tileSetList[tileSetIndex], selectedTexture.name);
+							if(!erasing)
+							{
+								if(selectedTexture != null)
+								{
+									Paint (targetPos, selectedTexture, mapTexture);
+									//Add the tile to the map
+									tileMap.AddTile((int)targetPos.x, (int)targetPos.y, brushSize, brushSize, tileSetList[tileSetIndex], selectedTexture.name);
+								}
+							}
+							else
+							{
+								//Remove the tile at the given position and paint a transparent texture in its place
+								Texture2D erasingTexture = TyleEditorUtils.NewTransparentTexture(brushSize, brushSize);
+								Paint (targetPos, erasingTexture, mapTexture);
+
+								tileMap.RemoveTile((int)targetPos.x, (int)targetPos.y, brushSize, brushSize);
+							}
 							break;
 						}
 					}
@@ -209,7 +248,10 @@ public class TyleEditorWindow : EditorWindow
 					   current.mousePosition.x >= 0 && current.mousePosition.y >= 0 && tileMap != null)
 					{
 						//Create a texture of the size of the brush
-						Color selectionColor = new Color(0.8f, 0.8f, 0.8f, 0.3f);
+						Color selectionColor = new Color(0.0f, 0.5f, 0.0f, 0.3f);
+
+						if(erasing)
+							selectionColor = new Color(0.5f, 0.0f, 0.0f, 0.7f);
 
 						selectionSpaceTexture = TyleEditorUtils.NewBasicTexture(selectionColor, brushSize, brushSize);
 						selectionSpaceTexture.Apply();
@@ -275,6 +317,7 @@ public class TyleEditorWindow : EditorWindow
 
 			//Brush controls
 			currentBrush = (BrushType)EditorGUILayout.EnumPopup("Brush Type", currentBrush);
+			erasing = EditorGUILayout.Toggle("Erasing", erasing);
 
 			//BREATHING ROOM
 			EditorGUILayout.Space();
@@ -375,7 +418,8 @@ public class TyleEditorWindow : EditorWindow
 			mapWidth = tileMap.width;
 			mapHeight = tileMap.height;				
 			
-			mapTexture = Map.GenerateMap(tileMap);
+			mapTexture = Map.GenerateMapTexture(tileMap);
+			detailTexture = Map.GenerateDetailTexture(tileMap);
 			
 			Repaint();
 		}
