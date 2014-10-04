@@ -23,9 +23,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 using UnityEngine;
 using System.Collections;
 
+[RequireComponent (typeof(Rigidbody2D))]
 public class PlayerMovement : MonoBehaviour 
 {
-	public float speed = 0.1f;
+	public float speed = 200.0f;
 
 	private Vector3 velocity;
 
@@ -53,6 +54,6 @@ public class PlayerMovement : MonoBehaviour
 		if(Input.GetKey(KeyCode.D))
 			velocity.x = speed;
 
-		transform.position += velocity;
+		rigidbody2D.velocity = (velocity * Time.deltaTime);
 	}
 }
