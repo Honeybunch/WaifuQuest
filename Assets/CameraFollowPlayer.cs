@@ -22,15 +22,38 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 using UnityEngine;
 using System.Collections;
 
-public class CameraFollowPlayer : MonoBehaviour {
+public class CameraFollowPlayer : MonoBehaviour 
+{
+	GameObject player;
+	GameObject map;
 
 	// Use this for initialization
-	void Start () {
-	
+	void Start () 
+	{
+		player = GameObject.Find("Player");
+		map = GameObject.Find("Map");
 	}
 	
 	// Update is called once per frame
-	void Update () {
-	
+	void Update () 
+	{
+		if(player == null || map == null)
+			return;
+
+		Vector3 boundPosition = player.transform.position;
+
+		//Keep the camera so that it will never view outside the map
+		float topMapBound = map.transform.renderer.bounds.center.y + map.transform.renderer.bounds.size.y/2;
+		float leftMapBound = map.transform.renderer.bounds.center.x - map.transform.renderer.bounds.size.x/2;
+		float bottomMapBound = map.transform.renderer.bounds.center.y - map.transform.renderer.bounds.size.y/2;
+		float rightMapBound = map.transform.renderer.bounds.center.x + map.transform.renderer.bounds.size.x/2;
+
+		float verticalExtent = camera.orthographicSize + 1;
+		float horizontalExtent = verticalExtent * ((float)Screen.width / (float)Screen.height);
+
+		float boundX = Mathf.Clamp(boundPosition.x, leftMapBound + horizontalExtent, rightMapBound - horizontalExtent);
+		float boundY = Mathf.Clamp(boundPosition.y, bottomMapBound + verticalExtent, topMapBound - verticalExtent);
+
+		this.transform.position = new Vector3(boundX, boundY, -10.0f);
 	}
 }
