@@ -280,7 +280,7 @@ public class Map {
 			//Set the pixels
 			detailMapTexture.SetPixels(x, y, w, h, detailPixels);
 		}
-
+		
 		detailMapTexture.Apply();
 
 		return detailMapTexture;

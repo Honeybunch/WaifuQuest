@@ -144,6 +144,8 @@ public class TyleEditorWindow : EditorWindow
 					if(selectionSpaceTexture && selectionSpaceTexture.width > 0 && selectionSpaceTexture.height > 0)
 						GUI.DrawTexture (selectionOutlineBox, selectionSpaceTexture);
 
+					Debug.Log(detailBox);
+
 					//Draw bounding and trigger details
 					if(detailTexture && detailTexture.width > 0 && detailTexture.height > 0)
 						GUI.DrawTexture(detailBox, detailTexture);
@@ -420,7 +422,9 @@ public class TyleEditorWindow : EditorWindow
 			
 			mapTexture = Map.GenerateMapTexture(tileMap);
 			detailTexture = Map.GenerateDetailTexture(tileMap);
-			
+
+			detailBox = new Rect(0,0, mapWidth, mapHeight);
+
 			Repaint();
 		}
 	}
