@@ -25,6 +25,13 @@ using System.Collections;
 using System.Collections.Generic;
 using WyrmTale;
 
+public enum TriggerType
+{
+	TRAVEL,
+	EVENT,
+	PLAYER_SPAWN
+}
+
 public class Tile {
 	
 	public Vector2 Position;
@@ -33,6 +40,8 @@ public class Tile {
 	public string TextureName;
 	public bool Passable;
 	public bool Trigger;
+	public string TriggerName;
+	public TriggerType Type;
 
 	/// <summary>
 	/// Create a new Tile.
@@ -64,11 +73,15 @@ public class Tile {
 	/// <param name="textureName">Texture name.</param>
 	/// <param name="passable">If set to <c>true</c> passable.</param>
 	/// <param name="trigger">If set to <c>true</c> trigger.</param>
-	public Tile(int xPos, int yPos, int width, int height, string tileSet, string textureName, bool passable, bool trigger)
+	public Tile(int xPos, int yPos, int width, int height, string tileSet, string textureName, bool passable, bool trigger, string triggerName, string triggerType)
 		:this(xPos, yPos, width, height, tileSet, textureName)
 	{
 		Passable = passable;
 		Trigger = trigger;
+		TriggerName = triggerName;
+
+		if(!string.IsNullOrEmpty(triggerType))
+			Type = (TriggerType)Enum.Parse(typeof(TriggerType), triggerType);
 	}
 
 	//Allows the converstion from Tile to JSON for serialization
@@ -85,6 +98,8 @@ public class Tile {
 			js["TextureName"] = tile.TextureName;
 			js["Passable"] = tile.Passable;
 			js["Trigger"] = tile.Trigger;
+			js["TriggerName"] = tile.TriggerName;
+			js["TriggerType"] = tile.Type;
 		}          
 		return js;
 	}
@@ -102,8 +117,10 @@ public class Tile {
 			string textureName = value.ToString("TextureName");
 			bool passable = value.ToBoolean("Passable");
 			bool trigger = value.ToBoolean("Trigger");
+			string triggerName = value.ToString("TriggerName");
+			string triggerType = value.ToString("TriggerType");
 
-			return new Tile(x,y,width,height,tileSet, textureName, passable, trigger);
+			return new Tile(x,y,width,height,tileSet, textureName, passable, trigger, triggerName, triggerType);
 		}
 	}
 

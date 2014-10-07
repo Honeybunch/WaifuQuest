@@ -27,9 +27,16 @@ using System.IO;
 
 public enum BrushType
 {
-	Painting,
+	Textures,
 	BoundingBoxes,
 	Triggers
+}
+
+public enum BrushMode
+{
+	Painting,
+	Erasing,
+	Selecting
 }
 
 [ExecuteInEditMode]
@@ -37,9 +44,14 @@ public class TyleEditorWindow : EditorWindow
 {
 	public static TyleEditorWindow windowInstance;
 
-	private BrushType currentBrush = BrushType.Painting;
-	private bool erasing = false;
+	private Event currentEvent;
 
+	private BrushType currentBrush = BrushType.Textures;
+	private BrushMode currentMode = BrushMode.Painting;
+
+	//Selected tiles for modifying later
+	private List<Tile> selectedTiles = new List<Tile>();
+	
 	//Textures for various things we need to display on the string
 	private Texture2D mapTexture = new Texture2D(0,0);
 	private Texture2D selectionSpaceTexture = new Texture2D(0,0);
@@ -65,6 +77,7 @@ public class TyleEditorWindow : EditorWindow
 	//Scroll positions
 	private Vector2 textureScrollPosition = Vector2.zero;
 	private Vector2 selectionScrollPosition = Vector2.zero;
+	private Vector2 inspectorScrollPosition = Vector2.zero;
 
 	//Window dimensions 
 	private float scrollViewWidth; 
@@ -92,9 +105,9 @@ public class TyleEditorWindow : EditorWindow
 	}
 
 	/// <summary>
-	/// Called when the window is enabled; use it to make sure we're displaying the right textures
+	/// Called when the window is in focus; use it to make sure we're displaying the right textures
 	/// </summary>
-	void OnEnable()
+	void OnFocus()
 	{
 		GatherTextures();
 	}
@@ -104,6 +117,13 @@ public class TyleEditorWindow : EditorWindow
 	/// </summary>
 	void OnGUI()
 	{
+		//Store the current event
+		currentEvent = Event.current;
+
+		//Keep things up to date when events fire
+		if(currentEvent != null)
+			Repaint();
+
 		//get some sizes that we'll use later
 		scrollViewWidth = position.width * .75f;
 		scrollViewHeight = position.height - 24;
@@ -113,6 +133,14 @@ public class TyleEditorWindow : EditorWindow
 		DrawMap();
 
 		DrawMapControls();
+	}
+
+	/// <summary>
+	/// Update code for the window
+	/// </summary>
+	void Update()
+	{
+		HandleMouseEvents();
 	}
 
 	/// <summary>
@@ -144,126 +172,9 @@ public class TyleEditorWindow : EditorWindow
 					if(selectionSpaceTexture && selectionSpaceTexture.width > 0 && selectionSpaceTexture.height > 0)
 						GUI.DrawTexture (selectionOutlineBox, selectionSpaceTexture);
 
-					Debug.Log(detailBox);
-
 					//Draw bounding and trigger details
 					if(detailTexture && detailTexture.width > 0 && detailTexture.height > 0)
 						GUI.DrawTexture(detailBox, detailTexture);
-
-					//Do this here because the events are gathered relative to the layout scope
-					
-					//Get Events
-					Event current = Event.current;
-
-					Vector2 targetPos = GetTopLeftOfQuadrant(current.mousePosition);
-
-					//Keep things refreshed
-					if(current != null)
-						Repaint();
-
-					//If the mouse is clicked while we're over the map bounds, lets start drawing
-					if(current.isMouse &&
-					   current.mousePosition.x <= mapWidth && current.mousePosition.y <= mapHeight &&
-					   current.mousePosition.x >= 0 && current.mousePosition.y >= 0)
-					{
-						//Mouse events based on current brush type
-						switch(currentBrush)
-						{ 
-						case BrushType.BoundingBoxes:
-
-							if(!erasing)
-							{
-								//Modify Tile at that position
-								Tile tileToMakeImpassible = tileMap.GetTile((int)targetPos.x, (int)targetPos.y);
-								
-								if(tileToMakeImpassible != null)
-								{
-									tileToMakeImpassible.Passable = false;
-									tileToMakeImpassible.Trigger = false;
-									
-									Texture2D boundingTexture = TyleEditorUtils.NewOutlineTexture(Color.red, brushSize, brushSize, 5, 0);
-									Paint (targetPos, boundingTexture, detailTexture);
-								}
-							}
-							else
-							{
-								//Remove the tile detail at the given position 
-								Texture2D erasingTexture = TyleEditorUtils.NewTransparentTexture(brushSize, brushSize);
-								Paint (targetPos, erasingTexture, detailTexture);
-								
-								Tile tileToMakePassible = tileMap.GetTile((int)targetPos.x, (int)targetPos.y, brushSize, brushSize);
-								if(tileToMakePassible != null)
-									tileToMakePassible.Passable = true;
-							}
-
-							break;
-						case BrushType.Triggers:
-							if(!erasing)
-							{
-								//Modify Tile at that position
-								Tile tileToMakeTrigger = tileMap.GetTile((int)targetPos.x, (int)targetPos.y);
-
-								if(tileToMakeTrigger != null)
-								{
-									tileToMakeTrigger.Passable = true;
-									tileToMakeTrigger.Trigger = true;
-
-									Texture2D triggerTexture = TyleEditorUtils.NewOutlineTexture(Color.blue, brushSize, brushSize, 5, 10);
-									Paint (targetPos, triggerTexture, detailTexture);
-								}
-							}else
-							{
-								//Remove the tile detail at the given position 
-								Texture2D erasingTexture = TyleEditorUtils.NewTransparentTexture(brushSize, brushSize);
-								Paint (targetPos, erasingTexture, detailTexture);
-								
-								Tile tileToMakeNotTrigger = tileMap.GetTile((int)targetPos.x, (int)targetPos.y, brushSize, brushSize);
-								if(tileToMakeNotTrigger != null)
-									tileToMakeNotTrigger.Trigger = false;
-							}
-							break;
-						//Default is painting
-						default:
-							if(!erasing)
-							{
-								if(selectedTexture != null)
-								{
-									Paint (targetPos, selectedTexture, mapTexture);
-									//Add the tile to the map
-									tileMap.AddTile((int)targetPos.x, (int)targetPos.y, brushSize, brushSize, tileSetList[tileSetIndex], selectedTexture.name);
-								}
-							}
-							else
-							{
-								//Remove the tile at the given position and paint a transparent texture in its place
-								Texture2D erasingTexture = TyleEditorUtils.NewTransparentTexture(brushSize, brushSize);
-								Paint (targetPos, erasingTexture, mapTexture);
-
-								tileMap.RemoveTile((int)targetPos.x, (int)targetPos.y, brushSize, brushSize);
-							}
-							break;
-						}
-					}
-
-					//If the mouse is over part of the map, show where a tile may be painted
-					if(current.mousePosition.x <= mapWidth && current.mousePosition.y <= mapHeight &&
-					   current.mousePosition.x >= 0 && current.mousePosition.y >= 0 && tileMap != null)
-					{
-						//Create a texture of the size of the brush
-						Color selectionColor = new Color(0.0f, 0.5f, 0.0f, 0.3f);
-
-						if(erasing)
-							selectionColor = new Color(0.5f, 0.0f, 0.0f, 0.7f);
-
-						selectionSpaceTexture = TyleEditorUtils.NewBasicTexture(selectionColor, brushSize, brushSize);
-						selectionSpaceTexture.Apply();
-						selectionOutlineBox = new Rect(targetPos.x, mapWidth - targetPos.y - brushSize, brushSize, brushSize);
-					}
-					else
-					{
-						//Clear the selection texture
-						selectionSpaceTexture = TyleEditorUtils.NewTransparentTexture(brushSize, brushSize);
-					}
 				}
 			}
 			GUILayout.EndScrollView();
@@ -279,74 +190,142 @@ public class TyleEditorWindow : EditorWindow
 	{
 		GUILayout.BeginArea(new Rect(scrollViewWidth + 6, 6, inspectorWidth, scrollViewHeight));
 		{
-			
-			//Ask for which tileset we want to use
-			int newTileIndex = EditorGUILayout.Popup(tileSetIndex, tileSetList.ToArray());
-
-			//If the tile set changes, repopulate the textures
-			if(newTileIndex != tileSetIndex)
+			inspectorScrollPosition = GUILayout.BeginScrollView(inspectorScrollPosition);
 			{
-				tileSetIndex = newTileIndex;
-				GatherTextures();
-			}
+				
+				//Ask for which tileset we want to use
+				int newTileIndex = EditorGUILayout.Popup(tileSetIndex, tileSetList.ToArray());
 
-			//BREATHING ROOM
-			EditorGUILayout.Space();
-			//BREATHING ROOM
-			
-			//Draw anther scrollable panel for all the possible textures
-			selectionScrollPosition = 
-				GUILayout.BeginScrollView(selectionScrollPosition, GUILayout.Height(400));
-			{
-				int newSelectedTextureIndex = GUILayout.SelectionGrid(selectedTextureIndex, 
-				                                               textureList.ToArray(),
-				                                               1,
-				                                               GUILayout.Width(inspectorWidth - 12),
-				                                               GUILayout.Height(textureList.Count * 64));
-				//If the selected texture changes update some info
-				if(newSelectedTextureIndex != selectedTextureIndex)
+				//If the tile set changes, repopulate the textures
+				if(newTileIndex != tileSetIndex)
 				{
-					selectedTextureIndex = newSelectedTextureIndex;
-
-					GetSelectedTexture();
+					tileSetIndex = newTileIndex;
+					GatherTextures();
 				}
-			}
-			GUILayout.EndScrollView();
 
-			//BREATHING ROOM
-			EditorGUILayout.Space();
-			//BREATHING ROOM
-
-			//Brush controls
-			currentBrush = (BrushType)EditorGUILayout.EnumPopup("Brush Type", currentBrush);
-			erasing = EditorGUILayout.Toggle("Erasing", erasing);
-
-			//BREATHING ROOM
-			EditorGUILayout.Space();
-			//BREATHING ROOM
-
-			GUILayout.Label("Brush Size:\t\t\t\t\t " + brushSize);
-
-			//BREATHING ROOM
-			EditorGUILayout.Space ();
-			EditorGUILayout.Space ();	
-			//BREATHING ROOM
-
-			//Map Creation Tools
-			GUILayout.Label("Map Creation");
-			mapWidth = EditorGUILayout.IntField("Map Width: ", mapWidth);
-			mapHeight = EditorGUILayout.IntField("Map Height: ", mapHeight);
-			
-			//Round mapWidth and mapHeight to nearest power of two
-			mapWidth = Mathf.ClosestPowerOfTwo(mapWidth);
-			mapHeight = Mathf.ClosestPowerOfTwo(mapHeight);
-			
-			if(GUILayout.Button("Create Map"))
-			{
-				//Double check that we want to overwrite the map
-				if(mapTexture && mapTexture.width > 0 && mapTexture.height > 0)
+				//BREATHING ROOM
+				EditorGUILayout.Space();
+				//BREATHING ROOM
+				
+				//Draw anther scrollable panel for all the possible textures
+				selectionScrollPosition = 
+					GUILayout.BeginScrollView(selectionScrollPosition, GUILayout.Height(400));
 				{
-					if(EditorUtility.DisplayDialog("Overwrite Map", "Are you sure you want to overwrite the current map?", "Yes", "No"))
+					int newSelectedTextureIndex = GUILayout.SelectionGrid(selectedTextureIndex, 
+					                                               textureList.ToArray(),
+					                                               1,
+					                                               GUILayout.Width(inspectorWidth - 48),
+					                                               GUILayout.Height(textureList.Count * 64));
+					//If the selected texture changes update some info
+					if(newSelectedTextureIndex != selectedTextureIndex)
+					{
+						selectedTextureIndex = newSelectedTextureIndex;
+
+						GetSelectedTexture();
+					}
+				}
+				GUILayout.EndScrollView();
+
+				//BREATHING ROOM
+				EditorGUILayout.Space();
+				//BREATHING ROOM
+
+				//Brush controls
+				currentBrush = (BrushType)EditorGUILayout.EnumPopup("Brush Type", currentBrush);
+				currentMode = (BrushMode)EditorGUILayout.EnumPopup("Brush Mode", currentMode);
+
+				//BREATHING ROOM
+				EditorGUILayout.Space();
+				//BREATHING ROOM
+
+				GUILayout.Label("Brush Size:\t\t\t\t\t " + brushSize);
+
+				EditorGUILayout.Space ();
+
+				//Display info about the selected tiles if there are any
+				//ONLY DISPLAY THIS DURING THE LAYOUT EVENT, NOT REPAINT
+				if(selectedTiles.Count > 0)
+				{
+					Tile tileToDisplay = selectedTiles[0];
+
+					if(tileToDisplay != null)
+					{
+						int x = (int)tileToDisplay.Position.x;
+						int y = (int)tileToDisplay.Position.y;
+						int width = (int)tileToDisplay.Size.x;
+						int height = (int)tileToDisplay.Size.y;
+				
+						string tileSet = tileToDisplay.TileSet;
+						string textureName = tileToDisplay.TextureName;
+						bool passable = tileToDisplay.Passable;
+						bool trigger = tileToDisplay.Trigger;
+						string triggerName = tileToDisplay.TriggerName;
+						TriggerType triggerType = tileToDisplay.Type;
+
+						EditorGUILayout.LabelField("Tile Summary");
+						EditorGUILayout.LabelField("X Position: " + x);
+						EditorGUILayout.LabelField("Y Position: " + y);
+						EditorGUILayout.LabelField("Width: " + width);
+						EditorGUILayout.LabelField("Height: " + height);
+						EditorGUILayout.LabelField("Tile Set: " + tileSet);
+						EditorGUILayout.LabelField("Texture Name: " + textureName);
+
+						if(!passable)
+							EditorGUILayout.LabelField("Type: Impassible");
+						else if(trigger)
+							EditorGUILayout.LabelField("Type: Trigger");
+						else
+							EditorGUILayout.LabelField("Type: Regular");
+
+						//Controls to change trigger properties
+						if(trigger)
+						{
+							string newTriggerName = EditorGUILayout.TextField("Trigger Name: ", triggerName);
+							if(newTriggerName != triggerName)
+							{
+								triggerName = newTriggerName;
+								tileToDisplay.TriggerName = triggerName;
+							}
+
+							TriggerType newTriggerType = (TriggerType)EditorGUILayout.EnumPopup("Trigger Type: ", triggerType);
+							if(newTriggerType != triggerType)
+							{
+								triggerType = newTriggerType;
+								tileToDisplay.Type = triggerType;
+							}
+						}
+					}
+				}
+
+				//BREATHING ROOM
+				EditorGUILayout.Space ();	
+				//BREATHING ROOM
+
+				//Map Creation Tools
+				GUILayout.Label("Map Creation");
+				mapWidth = EditorGUILayout.IntField("Map Width: ", mapWidth);
+				mapHeight = EditorGUILayout.IntField("Map Height: ", mapHeight);
+				
+				//Round mapWidth and mapHeight to nearest power of two
+				mapWidth = Mathf.ClosestPowerOfTwo(mapWidth);
+				mapHeight = Mathf.ClosestPowerOfTwo(mapHeight);
+				
+				if(GUILayout.Button("Create Map"))
+				{
+					//Double check that we want to overwrite the map
+					if(mapTexture && mapTexture.width > 0 && mapTexture.height > 0)
+					{
+						if(EditorUtility.DisplayDialog("Overwrite Map", "Are you sure you want to overwrite the current map?", "Yes", "No"))
+						{
+							tileMap = new Map(mapWidth, mapHeight);
+							mapTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
+							selectionSpaceTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
+							detailTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
+
+							detailBox = new Rect(0,0, mapWidth, mapHeight);
+						}
+					}
+					else
 					{
 						tileMap = new Map(mapWidth, mapHeight);
 						mapTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
@@ -356,21 +335,13 @@ public class TyleEditorWindow : EditorWindow
 						detailBox = new Rect(0,0, mapWidth, mapHeight);
 					}
 				}
-				else
-				{
-					tileMap = new Map(mapWidth, mapHeight);
-					mapTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
-					selectionSpaceTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
-					detailTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
 
-					detailBox = new Rect(0,0, mapWidth, mapHeight);
-				}
+				//Everything after this will be anchored to the bottom of the area
+				GUILayout.FlexibleSpace();
+				
+				DrawMapControlButtons();
 			}
-
-			//Everything after this will be anchored to the bottom of the area
-			GUILayout.FlexibleSpace();
-			
-			DrawMapControlButtons();
+			GUILayout.EndScrollView();
 		}
 		GUILayout.EndArea();
 	}
@@ -497,7 +468,7 @@ public class TyleEditorWindow : EditorWindow
 	/// <param name="position">Position.</param>
 	Vector2 GetTopLeftOfQuadrant(Vector2 position)
 	{
-		position += new Vector2(brushSize/2, brushSize/2);
+		position += new Vector2(brushSize/2, 0);
 		
 		int targetX = (int)(Mathf.Round(position.x / brushSize) * brushSize);
 		int targetY = (int)(Mathf.Round(position.y / brushSize) * brushSize);
@@ -535,5 +506,144 @@ public class TyleEditorWindow : EditorWindow
 		
 		//Make sure that the display updates
 		Repaint();
+	}
+
+	/// <summary>
+	/// Handles the mouse events.
+	/// </summary>
+	void HandleMouseEvents()
+	{
+		//Get Events
+		if(currentEvent == null)
+			return;
+
+		Vector2 targetPos = GetTopLeftOfQuadrant(currentEvent.mousePosition);
+
+		//If we right click, clear the selection
+		if(currentEvent.isMouse && currentEvent.button == 1)
+			selectedTiles.Clear();
+
+		//If the mouse is clicked while we're over the map bounds, lets start drawing
+		if(currentEvent.isMouse &&
+		   currentEvent.mousePosition.x <= mapWidth && currentEvent.mousePosition.y <= mapHeight &&
+		   currentEvent.mousePosition.x >= 0 && currentEvent.mousePosition.y >= 0)
+		{
+			//Mouse events based on current brush type
+			switch(currentBrush)
+			{ 
+			case BrushType.BoundingBoxes:
+				switch(currentMode)
+				{
+				case BrushMode.Painting:
+					//Modify Tile at that position
+					Tile tileToMakeImpassible = tileMap.GetTile((int)targetPos.x, (int)targetPos.y);
+					
+					if(tileToMakeImpassible != null)
+					{
+						tileToMakeImpassible.Passable = false;
+						tileToMakeImpassible.Trigger = false;
+						
+						Texture2D boundingTexture = TyleEditorUtils.NewOutlineTexture(Color.red, brushSize, brushSize, 5, 0);
+						Paint (targetPos, boundingTexture, detailTexture);
+					}
+					break;
+				case BrushMode.Erasing:
+					//Remove the tile detail at the given position 
+					Texture2D erasingTexture = TyleEditorUtils.NewTransparentTexture(brushSize, brushSize);
+					Paint (targetPos, erasingTexture, detailTexture);
+					
+					Tile tileToMakePassible = tileMap.GetTile((int)targetPos.x, (int)targetPos.y, brushSize, brushSize);
+					if(tileToMakePassible != null)
+					tileToMakePassible.Passable = true;
+					break;
+				case BrushMode.Selecting:
+					break;
+				
+				}
+				break;
+			case BrushType.Triggers:
+				switch(currentMode)
+				{
+				case BrushMode.Painting:
+					//Modify Tile at that position
+					Tile tileToMakeTrigger = tileMap.GetTile((int)targetPos.x, (int)targetPos.y);
+					
+					if(tileToMakeTrigger != null)
+					{
+						tileToMakeTrigger.Passable = true;
+						tileToMakeTrigger.Trigger = true;
+						
+						Texture2D triggerTexture = TyleEditorUtils.NewOutlineTexture(Color.blue, brushSize, brushSize, 5, 10);
+						Paint (targetPos, triggerTexture, detailTexture);
+					}
+					break;
+				case BrushMode.Erasing:
+					//Remove the tile detail at the given position 
+					Texture2D erasingTexture = TyleEditorUtils.NewTransparentTexture(brushSize, brushSize);
+					Paint (targetPos, erasingTexture, detailTexture);
+					
+					Tile tileToMakeNotTrigger = tileMap.GetTile((int)targetPos.x, (int)targetPos.y, brushSize, brushSize);
+					if(tileToMakeNotTrigger != null)
+					tileToMakeNotTrigger.Trigger = false;
+					break;
+				case BrushMode.Selecting:
+					if(currentEvent.type == EventType.MouseDown && currentEvent.button != 1)
+					{
+						selectedTiles.Clear();
+						Tile t = tileMap.GetTile((int)targetPos.x, (int)targetPos.y);
+						if(t != null)
+							selectedTiles.Add(t);
+					}
+					break;
+				}
+				break;
+				//Default is painting
+			default:
+				switch(currentMode)
+				{
+				case BrushMode.Painting:
+
+					if(selectedTexture != null)
+					{
+						Paint (targetPos, selectedTexture, mapTexture);
+						//Add the tile to the map
+						tileMap.AddTile((int)targetPos.x, (int)targetPos.y, brushSize, brushSize, tileSetList[tileSetIndex], selectedTexture.name);
+					}
+					break;
+				case BrushMode.Erasing:
+					//Remove the tile at the given position and paint a transparent texture in its place
+					Texture2D erasingTexture = TyleEditorUtils.NewTransparentTexture(brushSize, brushSize);
+					Paint (targetPos, erasingTexture, mapTexture);
+					
+					tileMap.RemoveTile((int)targetPos.x, (int)targetPos.y, brushSize, brushSize);
+					break;
+				}
+				break;
+			}
+		}
+		
+		//If the mouse is over part of the map, show where a tile may be painted
+		if(currentEvent.mousePosition.x <= mapWidth && currentEvent.mousePosition.y <= mapHeight &&
+		   currentEvent.mousePosition.x >= 0 && currentEvent.mousePosition.y >= 0 && tileMap != null)
+		{
+			//Create a texture of the size of the brush
+			Color selectionColor = new Color(0.0f, 0.5f, 0.0f, 0.3f);
+			
+			if(currentMode == BrushMode.Erasing)
+				selectionColor = new Color(0.5f, 0.0f, 0.0f, 0.7f);
+			if(currentMode == BrushMode.Selecting)
+				selectionColor = new Color(0.0f, 0.0f, 0.5f, 0.7f);
+			
+			selectionSpaceTexture = TyleEditorUtils.NewBasicTexture(selectionColor, brushSize, brushSize);
+			selectionSpaceTexture.Apply();
+			selectionOutlineBox = new Rect(targetPos.x, mapWidth - targetPos.y - brushSize, brushSize, brushSize);
+		}
+		else
+		{
+			//Clear the selection texture
+			selectionSpaceTexture = TyleEditorUtils.NewTransparentTexture(brushSize, brushSize);
+		}
+
+		//If we're in selection mode
 	}
 }
