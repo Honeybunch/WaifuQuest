@@ -77,7 +77,8 @@ public class TyleEditorWindow : EditorWindow
 	//Scroll positions
 	private Vector2 textureScrollPosition = Vector2.zero;
 	private Vector2 selectionScrollPosition = Vector2.zero;
-	private Vector2 inspectorScrollPosition = Vector2.zero;
+	private Vector2 rightInspectorScrollPosition = Vector2.zero;
+	private Vector2 leftInspectorScrollPosition = Vector2.zero;
 
 	//Window dimensions 
 	private float scrollViewWidth; 
@@ -102,6 +103,7 @@ public class TyleEditorWindow : EditorWindow
 	
 		windowInstance.GatherTileSets();
 		windowInstance.GatherTextures();
+		windowInstance.name = "Tyle";
 	}
 
 	/// <summary>
@@ -125,14 +127,15 @@ public class TyleEditorWindow : EditorWindow
 			Repaint();
 
 		//get some sizes that we'll use later
-		scrollViewWidth = position.width * .75f;
+		inspectorWidth = position.width * .20f - 12;
+		scrollViewWidth = position.width - (inspectorWidth * 2);
 		scrollViewHeight = position.height - 24;
 
-		inspectorWidth = position.width * .25f - 12;
+		DrawLeftInspector();
 
 		DrawMap();
 
-		DrawMapControls();
+		DrawRightInspector();
 	}
 
 	/// <summary>
@@ -150,7 +153,7 @@ public class TyleEditorWindow : EditorWindow
 	void DrawMap()
 	{
 		//Scroll view for displaying the texture
-		GUILayout.BeginArea(new Rect(6,6, scrollViewWidth, scrollViewHeight));
+		GUILayout.BeginArea(new Rect(inspectorWidth + 12, 6, scrollViewWidth, scrollViewHeight));
 		{
 			textureScrollPosition = GUILayout.BeginScrollView(textureScrollPosition);
 			{			
@@ -183,124 +186,75 @@ public class TyleEditorWindow : EditorWindow
 	}
 
 	/// <summary>
-	/// Draws the map controls
+	/// Draws an inspector on the left that's used for the painting and map tools
 	/// Should be called from OnGUI
 	/// </summary>
-	void DrawMapControls()
+	void DrawLeftInspector()
 	{
-		GUILayout.BeginArea(new Rect(scrollViewWidth + 6, 6, inspectorWidth, scrollViewHeight));
+		GUILayout.BeginArea(new Rect(6, 6, inspectorWidth, scrollViewHeight));
 		{
-			inspectorScrollPosition = GUILayout.BeginScrollView(inspectorScrollPosition);
+			rightInspectorScrollPosition = GUILayout.BeginScrollView(rightInspectorScrollPosition);
 			{
 				
 				//Ask for which tileset we want to use
 				int newTileIndex = EditorGUILayout.Popup(tileSetIndex, tileSetList.ToArray());
-
+				
 				//If the tile set changes, repopulate the textures
 				if(newTileIndex != tileSetIndex)
 				{
 					tileSetIndex = newTileIndex;
 					GatherTextures();
 				}
+				
 
-				//BREATHING ROOM
 				EditorGUILayout.Space();
-				//BREATHING ROOM
+
 				
 				//Draw anther scrollable panel for all the possible textures
 				selectionScrollPosition = 
-					GUILayout.BeginScrollView(selectionScrollPosition, GUILayout.Height(400));
+					GUILayout.BeginScrollView(selectionScrollPosition, GUILayout.Height(250));
 				{
 					int newSelectedTextureIndex = GUILayout.SelectionGrid(selectedTextureIndex, 
-					                                               textureList.ToArray(),
-					                                               1,
-					                                               GUILayout.Width(inspectorWidth - 48),
-					                                               GUILayout.Height(textureList.Count * 64));
+					                                                      textureList.ToArray(),
+					                                                      1,
+					                                                      GUILayout.Width(inspectorWidth - 48),
+					                                                      GUILayout.Height(textureList.Count * 64));
 					//If the selected texture changes update some info
 					if(newSelectedTextureIndex != selectedTextureIndex)
 					{
 						selectedTextureIndex = newSelectedTextureIndex;
-
+						
 						GetSelectedTexture();
 					}
 				}
 				GUILayout.EndScrollView();
 
-				//BREATHING ROOM
-				EditorGUILayout.Space();
-				//BREATHING ROOM
 
+				EditorGUILayout.Space();
+				
+				//A button for reloading textures from the disk
+				if(GUILayout.Button("Reload Tiles"))
+				{
+					GatherTileSets();
+					GatherTextures();
+				}
+
+				EditorGUILayout.Space();
+				EditorGUILayout.Space();
+
+				
 				//Brush controls
 				currentBrush = (BrushType)EditorGUILayout.EnumPopup("Brush Type", currentBrush);
 				currentMode = (BrushMode)EditorGUILayout.EnumPopup("Brush Mode", currentMode);
-
-				//BREATHING ROOM
-				EditorGUILayout.Space();
-				//BREATHING ROOM
-
-				GUILayout.Label("Brush Size:\t\t\t\t\t " + brushSize);
-
-				EditorGUILayout.Space ();
-
-				//Display info about the selected tiles if there are any
-				//ONLY DISPLAY THIS DURING THE LAYOUT EVENT, NOT REPAINT
-				if(selectedTiles.Count > 0)
-				{
-					Tile tileToDisplay = selectedTiles[0];
-
-					if(tileToDisplay != null)
-					{
-						int x = (int)tileToDisplay.Position.x;
-						int y = (int)tileToDisplay.Position.y;
-						int width = (int)tileToDisplay.Size.x;
-						int height = (int)tileToDisplay.Size.y;
 				
-						string tileSet = tileToDisplay.TileSet;
-						string textureName = tileToDisplay.TextureName;
-						bool passable = tileToDisplay.Passable;
-						bool trigger = tileToDisplay.Trigger;
-						string triggerName = tileToDisplay.TriggerName;
-						TriggerType triggerType = tileToDisplay.Type;
 
-						EditorGUILayout.LabelField("Tile Summary");
-						EditorGUILayout.LabelField("X Position: " + x);
-						EditorGUILayout.LabelField("Y Position: " + y);
-						EditorGUILayout.LabelField("Width: " + width);
-						EditorGUILayout.LabelField("Height: " + height);
-						EditorGUILayout.LabelField("Tile Set: " + tileSet);
-						EditorGUILayout.LabelField("Texture Name: " + textureName);
+				EditorGUILayout.Space();
 
-						if(!passable)
-							EditorGUILayout.LabelField("Type: Impassible");
-						else if(trigger)
-							EditorGUILayout.LabelField("Type: Trigger");
-						else
-							EditorGUILayout.LabelField("Type: Regular");
-
-						//Controls to change trigger properties
-						if(trigger)
-						{
-							string newTriggerName = EditorGUILayout.TextField("Trigger Name: ", triggerName);
-							if(newTriggerName != triggerName)
-							{
-								triggerName = newTriggerName;
-								tileToDisplay.TriggerName = triggerName;
-							}
-
-							TriggerType newTriggerType = (TriggerType)EditorGUILayout.EnumPopup("Trigger Type: ", triggerType);
-							if(newTriggerType != triggerType)
-							{
-								triggerType = newTriggerType;
-								tileToDisplay.Type = triggerType;
-							}
-						}
-					}
-				}
-
-				//BREATHING ROOM
-				EditorGUILayout.Space ();	
-				//BREATHING ROOM
-
+				
+				GUILayout.Label("Brush Size:\t\t\t\t\t " + brushSize);
+				
+				EditorGUILayout.Space ();
+				
 				//Map Creation Tools
 				GUILayout.Label("Map Creation");
 				mapWidth = EditorGUILayout.IntField("Map Width: ", mapWidth);
@@ -321,7 +275,7 @@ public class TyleEditorWindow : EditorWindow
 							mapTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
 							selectionSpaceTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
 							detailTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
-
+							
 							detailBox = new Rect(0,0, mapWidth, mapHeight);
 						}
 					}
@@ -331,15 +285,88 @@ public class TyleEditorWindow : EditorWindow
 						mapTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
 						selectionSpaceTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
 						detailTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
-
+						
 						detailBox = new Rect(0,0, mapWidth, mapHeight);
 					}
 				}
+			}
+			GUILayout.EndScrollView();
+		}
+		GUILayout.EndArea();
+	}
+
+	/// <summary>
+	/// Draws an inspector on the right that's used for saving, loading and tile details
+	/// Should be called from OnGUI
+	/// </summary>
+	void DrawRightInspector()
+	{
+		GUILayout.BeginArea(new Rect(inspectorWidth + scrollViewWidth + 12, 6, inspectorWidth - 12, scrollViewHeight));
+		{
+			leftInspectorScrollPosition = GUILayout.BeginScrollView(leftInspectorScrollPosition);
+			{
+				//Display info about the selected tiles if there are any
+				//ONLY DISPLAY THIS DURING THE LAYOUT EVENT, NOT REPAINT
+				if(selectedTiles.Count > 0)
+				{
+					Tile tileToDisplay = selectedTiles[0];
+					
+					if(tileToDisplay != null)
+					{
+						int x = (int)tileToDisplay.Position.x;
+						int y = (int)tileToDisplay.Position.y;
+						int width = (int)tileToDisplay.Size.x;
+						int height = (int)tileToDisplay.Size.y;
+						
+						string tileSet = tileToDisplay.TileSet;
+						string textureName = tileToDisplay.TextureName;
+						bool passable = tileToDisplay.Passable;
+						bool trigger = tileToDisplay.Trigger;
+						string triggerName = tileToDisplay.TriggerName;
+						TriggerType triggerType = tileToDisplay.Type;
+						
+						EditorGUILayout.LabelField("Tile Summary");
+						EditorGUILayout.LabelField("X Position: " + x);
+						EditorGUILayout.LabelField("Y Position: " + y);
+						EditorGUILayout.LabelField("Width: " + width);
+						EditorGUILayout.LabelField("Height: " + height);
+						EditorGUILayout.LabelField("Tile Set: " + tileSet);
+						EditorGUILayout.LabelField("Texture Name: " + textureName);
+						
+						if(!passable)
+							EditorGUILayout.LabelField("Type: Impassible");
+						else if(trigger)
+							EditorGUILayout.LabelField("Type: Trigger");
+						else
+							EditorGUILayout.LabelField("Type: Regular");
+						
+						//Controls to change trigger properties
+						if(trigger)
+						{
+							string newTriggerName = EditorGUILayout.TextField("Trigger Name: ", triggerName);
+							if(newTriggerName != triggerName)
+							{
+								triggerName = newTriggerName;
+								tileToDisplay.TriggerName = triggerName;
+							}
+							
+							TriggerType newTriggerType = (TriggerType)EditorGUILayout.EnumPopup("Trigger Type: ", triggerType);
+							if(newTriggerType != triggerType)
+							{
+								triggerType = newTriggerType;
+								tileToDisplay.Type = triggerType;
+							}
+						}
+					}
+				}
+				
+				EditorGUILayout.Space ();
 
 				//Everything after this will be anchored to the bottom of the area
 				GUILayout.FlexibleSpace();
 				
 				DrawMapControlButtons();
+
 			}
 			GUILayout.EndScrollView();
 		}
@@ -352,14 +379,6 @@ public class TyleEditorWindow : EditorWindow
 	/// </summary>
 	void DrawMapControlButtons()
 	{
-		//A button for reloading textures from the disk
-		if(GUILayout.Button("Reload Tiles"))
-		{
-			GatherTileSets();
-			GatherTextures();
-		}
-		
-		EditorGUILayout.Space();
 		
 		//A button for saving out the map
 		if(GUILayout.Button("Save Map"))
@@ -422,7 +441,7 @@ public class TyleEditorWindow : EditorWindow
 	/// Populate the textureList with all textures ending with TileTexture
 	/// </summary>
 	void GatherTextures()
-	{
+	{	
 		//there has to be a tile set directory that we want to get
 		if(tileSetList.Count <= 0)
 			return;
@@ -491,7 +510,7 @@ public class TyleEditorWindow : EditorWindow
 	/// <param name="destinationTexture">Destination texture.</param>
 	void Paint(Vector2 postion, Texture2D sourceTexture, Texture2D destinationTexture)
 	{
-		if(sourceTexture == null || destinationTexture == null)
+		if(sourceTexture == null || sourceTexture.width == 0 || destinationTexture == null || destinationTexture.width == 0)
 			return;
 
 		int targetX = (int)postion.x;
@@ -513,9 +532,11 @@ public class TyleEditorWindow : EditorWindow
 	/// </summary>
 	void HandleMouseEvents()
 	{
-		//Get Events
-		if(currentEvent == null)
+		//Get Events				Check which window the mouse is over so that this doesn't fire inappropriately
+		if(currentEvent == null || EditorWindow.mouseOverWindow == null || EditorWindow.mouseOverWindow.ToString() != " (TyleEditorWindow)")
 			return;
+
+		currentEvent.mousePosition -= new Vector2(inspectorWidth + 12, 0); //Offset to deal with the space that the left inspector takes up
 
 		Vector2 targetPos = GetTopLeftOfQuadrant(currentEvent.mousePosition);
 
@@ -524,7 +545,7 @@ public class TyleEditorWindow : EditorWindow
 			selectedTiles.Clear();
 
 		//If the mouse is clicked while we're over the map bounds, lets start drawing
-		if(currentEvent.isMouse &&
+		if(currentEvent.isMouse && tileMap != null &&
 		   currentEvent.mousePosition.x <= mapWidth && currentEvent.mousePosition.y <= mapHeight &&
 		   currentEvent.mousePosition.x >= 0 && currentEvent.mousePosition.y >= 0)
 		{
@@ -633,7 +654,9 @@ public class TyleEditorWindow : EditorWindow
 				selectionColor = new Color(0.5f, 0.0f, 0.0f, 0.7f);
 			if(currentMode == BrushMode.Selecting)
 				selectionColor = new Color(0.0f, 0.0f, 0.5f, 0.7f);
-			
+
+			DestroyImmediate(selectionSpaceTexture);
+
 			selectionSpaceTexture = TyleEditorUtils.NewBasicTexture(selectionColor, brushSize, brushSize);
 			selectionSpaceTexture.Apply();
 			selectionOutlineBox = new Rect(targetPos.x, mapWidth - targetPos.y - brushSize, brushSize, brushSize);
