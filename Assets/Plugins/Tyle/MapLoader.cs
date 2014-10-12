@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.Collections;
+using System.Collections.Generic;
 
 public class MapLoader : MonoBehaviour 
 {
@@ -26,13 +27,37 @@ public class MapLoader : MonoBehaviour
 		mapPlane.transform.localScale =  new Vector3(mapScaleX, mapScaleY, 1.0f);
 
 		//Generate the texture and apply it to the object
-		Texture2D mapTexture = Map.GenerateMapTexture(map);
-		Material mapMat = new Material(mapPlane.renderer.sharedMaterial);
-		mapMat.mainTexture = mapTexture;
+		List<Texture2D> mapLayers = Map.GenerateMapTextures(map);
+
+		//Combine all map layers into one texture
+		Texture2D mapTexture = TyleEditorUtils.NewTransparentTexture(map.width, map.height);
+
+		foreach(Texture2D layer in mapLayers)
+		{
+			Color[] layerPixels = layer.GetPixels();
+
+			for(int i = 0; i < layerPixels.Length; i++)
+			{
+				int pixelX;
+				int pixelY;
+
+				if(i == map.width)
+					pixelX = map.width;
+				else
+					pixelX = i % map.width;
+
+				pixelY = i / (map.width + 1);
+
+				if(layerPixels[i].a > 0)
+					mapTexture.SetPixel(pixelX, pixelY, layerPixels[i]);
+			}
+		}
+
+		mapTexture.Apply();
 
 		//Use the shared material only in the editor
 #if UNITY_EDITOR
-		mapPlane.renderer.sharedMaterial = mapMat;
+		mapPlane.renderer.sharedMaterial.mainTexture = mapTexture;
 #else
 		mapPlane.renderer.material = mapMat;
 #endif
@@ -80,7 +105,13 @@ public class MapLoader : MonoBehaviour
 				collider.size = new Vector2(width,height);
 
 				if(t.Trigger)
+				{
+					//If it's a trigger, mark it as such, also add a trigger component to the game object
 					collider.isTrigger = true;
+					TriggerProperties triggerProperties = (TriggerProperties)specialTile.AddComponent<TriggerProperties>();
+					triggerProperties.name = t.TriggerName;
+					triggerProperties.type = t.Type;
+				}
 
 				rigidbody.isKinematic = true;
 

@@ -33,7 +33,8 @@ public enum TriggerType
 }
 
 public class Tile {
-	
+
+	public int Layer;
 	public Vector2 Position;
 	public Vector2 Size;
 	public string TileSet;
@@ -52,8 +53,9 @@ public class Tile {
 	/// <param name="height">Height.</param>
 	/// <param name="tileSet">Tile set.</param>
 	/// <param name="textureName">Texture name.</param>
-	public Tile(int xPos, int yPos, int width, int height, string tileSet, string textureName)
+	public Tile(int layer, int xPos, int yPos, int width, int height, string tileSet, string textureName)
 	{
+		Layer = layer;
 		Position = new Vector2(xPos, yPos);
 		Size = new Vector2(width, height);
 		TileSet = tileSet;
@@ -73,8 +75,8 @@ public class Tile {
 	/// <param name="textureName">Texture name.</param>
 	/// <param name="passable">If set to <c>true</c> passable.</param>
 	/// <param name="trigger">If set to <c>true</c> trigger.</param>
-	public Tile(int xPos, int yPos, int width, int height, string tileSet, string textureName, bool passable, bool trigger, string triggerName, string triggerType)
-		:this(xPos, yPos, width, height, tileSet, textureName)
+	public Tile(int layer, int xPos, int yPos, int width, int height, string tileSet, string textureName, bool passable, bool trigger, string triggerName, string triggerType)
+		:this(layer, xPos, yPos, width, height, tileSet, textureName)
 	{
 		Passable = passable;
 		Trigger = trigger;
@@ -90,6 +92,7 @@ public class Tile {
 		JSON js = new JSON();
 		if (tile!=null)
 		{
+			js["Layer"] = tile.Layer;
 			js["X"] = tile.Position.x;
 			js["Y"] = tile.Position.y;
 			js["Width"] = tile.Size.x;
@@ -109,6 +112,7 @@ public class Tile {
 	{
 		checked
 		{
+			int layer = value.ToInt("Layer");
 			int x = value.ToInt("X");
 			int y = value.ToInt("Y");
 			int width = value.ToInt("Width");
@@ -120,7 +124,7 @@ public class Tile {
 			string triggerName = value.ToString("TriggerName");
 			string triggerType = value.ToString("TriggerType");
 
-			return new Tile(x,y,width,height,tileSet, textureName, passable, trigger, triggerName, triggerType);
+			return new Tile(layer, x,y,width,height,tileSet, textureName, passable, trigger, triggerName, triggerType);
 		}
 	}
 
