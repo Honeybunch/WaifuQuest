@@ -64,7 +64,7 @@ public class MapLoaderEditor : Editor
 
 			Map map = Map.DeserializeMap(mapJson);
 
-			MapLoader.CreateMap(map);
+			MapLoader.CreateMap(map).MoveNext();
 		}
 	}
 }

@@ -9,16 +9,23 @@ public class MapLoader : MonoBehaviour
 	/// Creates a map in the game scene as a plane
 	/// </summary>
 	/// <param name="map">Map.</param>
-	public static void CreateMap(Map map)
+	public static IEnumerator CreateMap(Map map)
 	{
 		//if there is an existing map, destroy it
 		GameObject previousMap = GameObject.Find("Map");
 		if(previousMap != null)
-			GameObject.DestroyImmediate(previousMap);
+		{
+			if(Application.isPlaying)
+			{
+				GameObject.Destroy(previousMap);
+			}
+			else
+				GameObject.DestroyImmediate(previousMap);
+		}
 
 		GameObject mapPlane = GameObject.CreatePrimitive(PrimitiveType.Quad);
 
-		mapPlane.name = "Map";
+		mapPlane.name = "NewMap";
 
 		//Set size of the plane to be resonable in the game world
 		float mapScaleX = map.width / 32.0f;
@@ -64,6 +71,8 @@ public class MapLoader : MonoBehaviour
 
 		//Add the colliders into the scene
 		CreateColliders(map);
+
+		yield return null;
 	}
 
 	private static void CreateColliders(Map map)
@@ -109,16 +118,21 @@ public class MapLoader : MonoBehaviour
 					//If it's a trigger, mark it as such, also add a trigger component to the game object
 					collider.isTrigger = true;
 					TriggerProperties triggerProperties = (TriggerProperties)specialTile.AddComponent<TriggerProperties>();
-					triggerProperties.name = t.TriggerName;
 					triggerProperties.type = t.Type;
+
+					triggerProperties.eventName = t.EventName;
+					triggerProperties.travelTo = t.TravelTo;
+					triggerProperties.travelFrom = t.TravelFrom;
 				}
 
 				rigidbody.isKinematic = true;
 
 				//Parent to the map for organization
-				specialTile.transform.parent = GameObject.Find("Map").transform;
+				specialTile.transform.parent = GameObject.Find("NewMap").transform;
 			}
 		}
+
+		GameObject.Find("NewMap").name = "Map";
 	}
 
 }
