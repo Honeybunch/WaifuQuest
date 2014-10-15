@@ -28,8 +28,7 @@ using WyrmTale;
 public enum TriggerType
 {
 	TRAVEL,
-	EVENT,
-	PLAYER_SPAWN
+	EVENT
 }
 
 public class Tile {
@@ -41,8 +40,11 @@ public class Tile {
 	public string TextureName;
 	public bool Passable;
 	public bool Trigger;
-	public string TriggerName;
+
 	public TriggerType Type;
+	public string EventName;
+	public string TravelTo;
+	public string TravelFrom;
 
 	/// <summary>
 	/// Create a new Tile.
@@ -75,15 +77,28 @@ public class Tile {
 	/// <param name="textureName">Texture name.</param>
 	/// <param name="passable">If set to <c>true</c> passable.</param>
 	/// <param name="trigger">If set to <c>true</c> trigger.</param>
-	public Tile(int layer, int xPos, int yPos, int width, int height, string tileSet, string textureName, bool passable, bool trigger, string triggerName, string triggerType)
+	public Tile(int layer, int xPos, int yPos, int width, int height, string tileSet, string textureName, bool passable, bool trigger, string triggerType, string eventName, string travelTo, string travelFrom)
 		:this(layer, xPos, yPos, width, height, tileSet, textureName)
 	{
 		Passable = passable;
 		Trigger = trigger;
-		TriggerName = triggerName;
 
 		if(!string.IsNullOrEmpty(triggerType))
 			Type = (TriggerType)Enum.Parse(typeof(TriggerType), triggerType);
+
+		switch(Type)
+		{
+		case TriggerType.EVENT:
+			EventName = eventName;
+			TravelTo = "";
+			TravelFrom = "";
+			break;
+		case TriggerType.TRAVEL:
+			EventName = "";
+			TravelTo = travelTo;
+			TravelFrom = travelFrom;
+			break;
+		}
 	}
 
 	//Allows the converstion from Tile to JSON for serialization
@@ -101,8 +116,11 @@ public class Tile {
 			js["TextureName"] = tile.TextureName;
 			js["Passable"] = tile.Passable;
 			js["Trigger"] = tile.Trigger;
-			js["TriggerName"] = tile.TriggerName;
+
 			js["TriggerType"] = tile.Type;
+			js["EventName"] = tile.EventName;
+			js["TravelTo"] = tile.TravelTo;
+			js["TravelFrom"] = tile.TravelFrom;
 		}          
 		return js;
 	}
@@ -121,10 +139,13 @@ public class Tile {
 			string textureName = value.ToString("TextureName");
 			bool passable = value.ToBoolean("Passable");
 			bool trigger = value.ToBoolean("Trigger");
-			string triggerName = value.ToString("TriggerName");
-			string triggerType = value.ToString("TriggerType");
 
-			return new Tile(layer, x,y,width,height,tileSet, textureName, passable, trigger, triggerName, triggerType);
+			string triggerType = value.ToString("TriggerType");
+			string eventName = value.ToString("EventName");
+			string travelTo = value.ToString("TravelTo");
+			string travelFrom = value.ToString("TravelFrom");
+
+			return new Tile(layer, x,y,width,height,tileSet, textureName, passable, trigger, triggerType, eventName, travelTo, travelFrom);
 		}
 	}
 

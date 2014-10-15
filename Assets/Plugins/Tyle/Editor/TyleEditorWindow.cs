@@ -385,8 +385,11 @@ public class TyleEditorWindow : EditorWindow
 						string textureName = tileToDisplay.TextureName;
 						bool passable = tileToDisplay.Passable;
 						bool trigger = tileToDisplay.Trigger;
-						string triggerName = tileToDisplay.TriggerName;
+
 						TriggerType triggerType = tileToDisplay.Type;
+						string eventName = tileToDisplay.EventName;
+						string travelTo = tileToDisplay.TravelTo;
+						string travelFrom = tileToDisplay.TravelFrom;
 						
 						EditorGUILayout.LabelField("Tile Summary");
 						EditorGUILayout.LabelField("X Position: " + x);
@@ -406,19 +409,41 @@ public class TyleEditorWindow : EditorWindow
 						//Controls to change trigger properties
 						if(trigger)
 						{
-							string newTriggerName = EditorGUILayout.TextField("Trigger Name: ", triggerName);
-							if(newTriggerName != triggerName)
-							{
-								triggerName = newTriggerName;
-								tileToDisplay.TriggerName = triggerName;
-							}
-							
 							TriggerType newTriggerType = (TriggerType)EditorGUILayout.EnumPopup("Trigger Type: ", triggerType);
 							if(newTriggerType != triggerType)
 							{
 								triggerType = newTriggerType;
 								tileToDisplay.Type = triggerType;
 							}
+
+							//Switch for determining what to allow editing of depending on the type
+							switch(triggerType)
+							{
+							case TriggerType.EVENT:
+								string newEventName = EditorGUILayout.TextField("Event Name: ", eventName);
+								if(newEventName != eventName)
+								{
+									eventName = newEventName;
+									tileToDisplay.EventName = eventName;
+								}
+								break;
+							case TriggerType.TRAVEL:
+								string newTravelTo = EditorGUILayout.TextField("Travel To: ", travelTo);
+								if(newTravelTo != travelTo)
+								{
+									travelTo = newTravelTo;
+									tileToDisplay.TravelTo = travelTo;
+								}
+								string newTravelFrom = EditorGUILayout.TextField("Travel From: ", travelFrom);
+								if(newTravelFrom != travelFrom)
+								{
+									travelFrom = newTravelFrom;
+									tileToDisplay.TravelFrom = travelFrom;
+								}
+								break;
+							}
+							
+
 						}
 					}
 				}

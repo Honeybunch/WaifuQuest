@@ -38,7 +38,11 @@ public class CameraFollowPlayer : MonoBehaviour
 	void Update () 
 	{
 		if(player == null || map == null)
+		{
+			//If the map goes null, it has been cleared for reloading, try to find it again
+			map = GameObject.Find("Map");
 			return;
+		}
 
 		Vector3 boundPosition = player.transform.position;
 

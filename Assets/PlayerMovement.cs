@@ -24,21 +24,31 @@ using UnityEngine;
 using System.Collections;
 
 [RequireComponent (typeof(Rigidbody2D))]
+[RequireComponent (typeof(PlayerTravel))]
 public class PlayerMovement : MonoBehaviour 
 {
 	public float speed = 200.0f;
 
 	private Vector3 velocity;
+	private PlayerTravel playerTravel;
 
 	// Use this for initialization
 	void Start () 
 	{
 		velocity = Vector3.zero;
+		playerTravel = GetComponent<PlayerTravel>();
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
+		//Only update movement if we're not traveling between maps
+		if(playerTravel.traveling)
+		{
+			rigidbody2D.velocity = Vector2.zero;
+			return;
+		}
+
 		velocity = Vector3.zero;
 
 		//Get Key input in 4 directions
