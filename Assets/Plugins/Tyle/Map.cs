@@ -30,6 +30,7 @@ public class Map {
 
 	public int width;
 	public int height;
+	public int layers;
 
 	/*
 	 * Constructors
@@ -54,10 +55,11 @@ public class Map {
 	/// <param name="w">The width.</param>
 	/// <param name="h">The height.</param>
 	/// <param name="tiles">A given list of tiles.</param>
-	public Map(int w, int h, List<Tile> tiles)
+	public Map(int w, int h, int l, List<Tile> tiles)
 	{
 		width = w;
 		height = h;
+		layers = l;
 		Tiles = tiles;
 	}
 
@@ -68,20 +70,20 @@ public class Map {
 	/// <summary>
 	/// Adds a tile to the map, will remove any existing tiles
 	/// </summary>
-	public void AddTile(int xPos, int yPos, int width, int height, string tileSet, string textureName)
+	public void AddTile(int layer, int xPos, int yPos, int width, int height, string tileSet, string textureName)
 	{
-		Tile existingTile = GetTile(xPos, yPos, width, height);
+		Tile existingTile = GetTile(layer, xPos, yPos, width, height);
 
 		if(existingTile != null && textureName != existingTile.TextureName)
 		{
 			//Replace the tile
 			Tiles.Remove(existingTile);
-			Tile newTile = new Tile(xPos, yPos, width, height, tileSet, textureName);
+			Tile newTile = new Tile(layer, xPos, yPos, width, height, tileSet, textureName);
 			Tiles.Add(newTile);
 		}
 		else if(existingTile == null)
 		{
-			Tile newTile = new Tile(xPos, yPos, width, height, tileSet, textureName);
+			Tile newTile = new Tile(layer, xPos, yPos, width, height, tileSet, textureName);
 			Tiles.Add(newTile);
 		}
 	}
@@ -94,16 +96,17 @@ public class Map {
 	/// <param name="yPos">Y position</param>
 	/// <param name="width">Width</param>
 	/// <param name="height">Height</param>
-	public Tile GetTile(int xPos, int yPos, int width, int height)
+	public Tile GetTile(int layer, int xPos, int yPos, int width, int height)
 	{
 		foreach(Tile t in Tiles)
 		{
+			bool sameLayer = (layer == t.Layer);
 			bool sameX = (xPos == t.Position.x);
 			bool sameY = (yPos == t.Position.y);
 			bool sameWidth = (width == t.Size.x);
 			bool sameHeight = (height == t.Size.y);
 			
-			if(sameX && sameY && sameWidth && sameHeight)
+			if(sameLayer && sameX && sameY && sameWidth && sameHeight)
 				return t;
 		}
 		
@@ -117,14 +120,15 @@ public class Map {
 	/// <returns>The tile</returns>
 	/// <param name="xPos">X position</param>
 	/// <param name="yPos">Y position</param>
-	public Tile GetTile(int xPos, int yPos)
+	public Tile GetTile(int layer, int xPos, int yPos)
 	{
 		foreach(Tile t in Tiles)
 		{
+			bool sameLayer = (layer == t.Layer);
 			bool sameX = (xPos == t.Position.x);
 			bool sameY = (yPos == t.Position.y);
 			
-			if(sameX && sameY)
+			if(sameLayer && sameX && sameY)
 				return t;
 		}
 		
@@ -148,16 +152,17 @@ public class Map {
 	/// <param name="yPos">Y position.</param>
 	/// <param name="width">Width.</param>
 	/// <param name="height">Height.</param>
-	public void RemoveTile(int xPos, int yPos, int width, int height)
+	public void RemoveTile(int layer, int xPos, int yPos, int width, int height)
 	{
 		foreach(Tile t in Tiles)
 		{
+			bool sameLayer = (layer == t.Layer);
 			bool sameX = (xPos == t.Position.x);
 			bool sameY = (yPos == t.Position.y);
 			bool sameWidth = (width == t.Size.x);
 			bool sameHeight = (height == t.Size.y);
 			
-			if(sameX && sameY && sameWidth && sameHeight)
+			if(sameLayer && sameX && sameY && sameWidth && sameHeight)
 			{
 				Tiles.Remove(t);
 				return;
@@ -184,6 +189,7 @@ public class Map {
 		}
 		js["MapWidth"] = map.width;
 		js["MapHeight"] = map.height;
+		js["Layers"] = map.layers;
 		js["Tiles"] = tilesArray;
 
 		string mapJson = js.serialized;
@@ -202,6 +208,7 @@ public class Map {
 
 		int w = js.ToInt("MapWidth");
 		int h = js.ToInt("MapHeight");
+		int l = js.ToInt("Layers");
 
 		Tile[] tilesArray = Tile.Array(js.ToArray<JSON>("Tiles"));
 
@@ -212,23 +219,25 @@ public class Map {
 			tiles.Add (tilesArray[i]);
 		}
 
-		Map map = new Map(w, h, tiles);
+		Map map = new Map(w, h, l, tiles);
 
 		return map;
 	}
 
 	/// <summary>
-	/// Generates the map texture
+	/// Generates the map texture at a given layer
 	/// </summary>
 	/// <returns>The map.</returns>
 	/// <param name="map">The texture of the map</param>
-	public static Texture2D GenerateMapTexture(Map map)
+	/// <param name="layer">The layer of the texture we want to generate</param>
+	public static Texture2D GenerateMapTexture(Map map, int layer)
 	{
 		Texture2D textureMap = TyleEditorUtils.NewTransparentTexture(map.width, map.height);
 
 		//Draw every tile onto the texture
 		foreach(Tile t in map.Tiles)
 		{
+			int tileLayer = (int)t.Layer;
 			int x = (int)t.Position.x;
 			int y = (int)t.Position.y;
 			int w = (int)t.Size.x;
@@ -236,18 +245,39 @@ public class Map {
 			string tileSet = t.TileSet;
 			string textureName = t.TextureName;
 
-			//Load the texture from the Resources folder
-			Texture2D tileTexture = (Texture2D)Resources.Load("Textures/" + tileSet + "/" + textureName);
+			if(tileLayer == layer)
+			{
+				//Load the texture from the Resources folder
+				Texture2D tileTexture = (Texture2D)Resources.Load("Textures/" + tileSet + "/" + textureName);
 
-			Color[] tilePixels = tileTexture.GetPixels();
-			
-			//Set the pixels 
-			textureMap.SetPixels(x, y, w, h, tilePixels, 0);
+				Color[] tilePixels = tileTexture.GetPixels();
+				
+				//Set the pixels 
+				textureMap.SetPixels(x, y, w, h, tilePixels, 0);
+			}
 		}
 
 		textureMap.Apply();
 
 		return textureMap;
+	}
+
+	/// <summary>
+	/// Generates the map textures at every layer
+	/// </summary>
+	/// <returns>The map textures.</returns>
+	public static List<Texture2D> GenerateMapTextures(Map map)
+	{
+		List<Texture2D> mapLayers = new List<Texture2D>();
+		int layers = map.layers;
+
+		for(int i = 0; i < layers; i++)
+		{
+			Texture2D mapLayer = GenerateMapTexture(map, i);
+			mapLayers.Add(mapLayer);
+		}
+
+		return mapLayers;
 	}
 
 	public static Texture2D GenerateDetailTexture(Map map)
@@ -280,7 +310,7 @@ public class Map {
 			//Set the pixels
 			detailMapTexture.SetPixels(x, y, w, h, detailPixels);
 		}
-
+		
 		detailMapTexture.Apply();
 
 		return detailMapTexture;

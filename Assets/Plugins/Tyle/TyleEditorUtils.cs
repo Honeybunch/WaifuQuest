@@ -34,6 +34,7 @@ public class TyleEditorUtils
 	public static Texture2D NewTransparentTexture(int width, int height)
 	{
 		Texture2D texture = new Texture2D(width, height);
+		texture.hideFlags = HideFlags.HideAndDontSave;
 
 		Color[] pixels = texture.GetPixels();
 
@@ -54,6 +55,7 @@ public class TyleEditorUtils
 	{
 		//Create a 1x1 texture and just set one pixel, then have it repeat
 		Texture2D texture = new Texture2D(width, height);
+		texture.hideFlags = HideFlags.HideAndDontSave;
 		
 		Color[] colors = new Color[width * height];
 
@@ -79,6 +81,7 @@ public class TyleEditorUtils
 	{
 		//We need a transparent starting texture
 		Texture2D texture = NewTransparentTexture(width, height);
+		texture.hideFlags = HideFlags.HideAndDontSave;
 
 		int verticalBlockWidth = lineWidth; 
 		int verticalBlockHeight = height - (2*distanceFromEdge);
@@ -103,6 +106,7 @@ public class TyleEditorUtils
 		texture.SetPixels(distanceFromEdge, height - distanceFromEdge - horizontalBlockHeight, horizontalBlockWidth, horizontalBlockHeight, horizontalBlock);
 
 		texture.Apply();
+
 		return texture;
 	}
 }
