@@ -53,6 +53,8 @@ public class PlayerMovement : MonoBehaviour
 
 		if(Input.GetKey(KeyCode.D))
 			velocity.x = speed;
+		if(Input.GetKey (KeyCode.Escape))
+			Application.LoadLevel ("Main_Menu");
 
 		rigidbody2D.velocity = (velocity * Time.deltaTime);
 	}
