@@ -26,11 +26,25 @@ using System.Collections;
 [CustomEditor (typeof(MapLoader))]
 public class MapLoaderEditor : Editor
 {
-	private string mapName;
-	private string mapPath;
+	MapLoader loader;
+
+	bool hasResetScene = true;
+
+	//Get the object we're attached to when the user selects said object
+	void OnEnable()
+	{
+		loader = (MapLoader)target;
+	}
+
+	void OnDestroy()
+	{
+		Debug.Log("Test");
+	}
 
 	public override void OnInspectorGUI()
 	{
+		string mapName = loader.mapName;
+
 		EditorGUILayout.Space();
 
 		if(string.IsNullOrEmpty(mapName))
@@ -49,8 +63,9 @@ public class MapLoaderEditor : Editor
 				int splitIndex = path.LastIndexOf("/");
 				string fileName = path.Substring(splitIndex + 1);
 
-				mapPath = path;
-				mapName = fileName;
+				//Make sure these get saved back to the target script
+				loader.mapPath = path;
+				loader.mapName = fileName;
 			}
 		}
 
@@ -59,12 +74,20 @@ public class MapLoaderEditor : Editor
 		//Button to load map
 		if(GUILayout.Button("Load Map"))
 		{
-			//Load the map and call the MapLoader to finish the job
-			string mapJson = System.IO.File.ReadAllText(mapPath);
-
-			Map map = Map.DeserializeMap(mapJson);
-
-			MapLoader.CreateMap(map).MoveNext();
+			LoadMap(loader.mapPath);
 		}
+	}
+
+	/// <summary>
+	/// Loads the map from the saved mapPath
+	/// </summary>
+	public static void LoadMap(string mapPath)
+	{
+		//Load the map and call the MapLoader to finish the job
+		string mapJson = System.IO.File.ReadAllText(mapPath);
+		
+		Map map = Map.DeserializeMap(mapJson);
+		
+		MapLoader.CreateMap(map).MoveNext();
 	}
 }

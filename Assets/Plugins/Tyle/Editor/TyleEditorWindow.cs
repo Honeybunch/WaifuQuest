@@ -303,57 +303,8 @@ public class TyleEditorWindow : EditorWindow
 						detailBox = new Rect(0,0, mapWidth, mapHeight);
 					}
 				}
-
-				EditorGUILayout.Space();
-
-				//Only draw layers if we have a map
-				if(tileMap != null)
-				{
-					GUILayout.Label("Layers: ");
-
-					//Draw anther scrollable panel for all the layers
-					layerScrollPosition = 
-						GUILayout.BeginScrollView(layerScrollPosition, GUILayout.Height(300));
-					{
-						int newLayerIndex = GUILayout.SelectionGrid(currentLayerIndex, 
-						                                            mapLayerTextures.ToArray(),
-						                                            1,
-						                                            GUILayout.Width(inspectorWidth - 48),
-						                                            GUILayout.Height(mapLayerTextures.Count * 128));
-						//If the selected layer changes, update the index
-						if(newLayerIndex != currentLayerIndex)
-							currentLayerIndex = newLayerIndex;
-						
-					}
-					GUILayout.EndScrollView();
-
-					//Horizontal Area for layer buttons
-					GUILayout.BeginHorizontal();
-					{
-						//Remove selected layer; give warning
-						if(GUILayout.Button("Remove", GUILayout.Width ((inspectorWidth-48)/2)))
-						{
-							if(EditorUtility.DisplayDialog("Delete Layer?", "Are you sure you want to delete the selected layer?", "Yes", "No"))
-							{
-								Texture2D textureToRemove = mapLayerTextures[currentLayerIndex];
-								DestroyImmediate(textureToRemove);
-								mapLayerTextures.RemoveAt(currentLayerIndex);
-								tileMap.layers--;
-							}
-						}
-						//Add a new layer
-						if(GUILayout.Button("Add", GUILayout.Width ((inspectorWidth-48)/2)))
-						{
-							Texture2D newLayerTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
-							mapLayerTextures.Add (newLayerTexture);
-							tileMap.layers++;
-						}
-					}
-					GUILayout.EndHorizontal();
-
-				}
-				GUILayout.EndScrollView();
 			}
+			GUILayout.EndScrollView();
 		}
 		GUILayout.EndArea();
 	}
@@ -368,6 +319,52 @@ public class TyleEditorWindow : EditorWindow
 		{
 			leftInspectorScrollPosition = GUILayout.BeginScrollView(leftInspectorScrollPosition);
 			{
+					//Only draw layers if we have a map
+					if(tileMap != null)
+					{
+						GUILayout.Label("Layers: ");
+						
+						//Draw anther scrollable panel for all the layers
+						layerScrollPosition = 
+							GUILayout.BeginScrollView(layerScrollPosition, GUILayout.Height(300));
+						{
+							int newLayerIndex = GUILayout.SelectionGrid(currentLayerIndex, 
+							                                            mapLayerTextures.ToArray(),
+							                                            1,
+							                                            GUILayout.Width(inspectorWidth - 48),
+							                                            GUILayout.Height(mapLayerTextures.Count * 128));
+							//If the selected layer changes, update the index
+							if(newLayerIndex != currentLayerIndex)
+								currentLayerIndex = newLayerIndex;
+							
+						}
+						GUILayout.EndScrollView();
+						
+						//Horizontal Area for layer buttons
+						GUILayout.BeginHorizontal();
+						{
+							//Remove selected layer; give warning
+							if(GUILayout.Button("Remove", GUILayout.Width ((inspectorWidth-48)/2)))
+							{
+								if(EditorUtility.DisplayDialog("Delete Layer?", "Are you sure you want to delete the selected layer?", "Yes", "No"))
+								{
+									Texture2D textureToRemove = mapLayerTextures[currentLayerIndex];
+									DestroyImmediate(textureToRemove);
+									mapLayerTextures.RemoveAt(currentLayerIndex);
+									tileMap.layers--;
+								}
+							}
+							//Add a new layer
+							if(GUILayout.Button("Add", GUILayout.Width ((inspectorWidth-48)/2)))
+							{
+								Texture2D newLayerTexture = TyleEditorUtils.NewTransparentTexture(mapWidth, mapHeight);
+								mapLayerTextures.Add (newLayerTexture);
+								tileMap.layers++;
+							}
+						}
+						GUILayout.EndHorizontal();
+				}
+
 				//Display info about the selected tiles if there are any
 				//ONLY DISPLAY THIS DURING THE LAYOUT EVENT, NOT REPAINT
 				if(selectedTiles.Count > 0)

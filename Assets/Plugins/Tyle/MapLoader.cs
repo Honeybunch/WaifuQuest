@@ -5,6 +5,20 @@ using System.Collections.Generic;
 
 public class MapLoader : MonoBehaviour 
 {
+	//The editor script will feed us these
+	[HideInInspector]
+	public string mapName;
+	[HideInInspector]
+	public string mapPath;
+
+
+#if UNITY_EDITOR
+	void OnApplicationQuit()
+	{
+		MapLoaderEditor.LoadMap(mapPath);
+	}
+#endif
+
 	/// <summary>
 	/// Creates a map in the game scene as a plane
 	/// </summary>
