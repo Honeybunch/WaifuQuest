@@ -25,7 +25,7 @@ public class MainMenu : MonoBehaviour {
 			//display buttons
 			if (GUI.Button (new Rect(Screen.width * .25f, Screen.height * .3f, Screen.width * .5f, Screen.height * .1f), "Start Game "))
 			{
-				loadGame ();
+				StartCoroutine(LoadGame());
 			}
 			
 			if (GUI.Button (new Rect(Screen.width * .25f, Screen.height * .4f, Screen.width * .5f, Screen.height * .1f), "Options"))
@@ -49,12 +49,20 @@ public class MainMenu : MonoBehaviour {
 		}
 	}
 
-	void loadGame()
+	/// <summary>
+	/// Coroutine to fade out and then load the game scene
+	/// </summary>
+	IEnumerator LoadGame()
 	{
+		//Wait to fade to black
+		ScreenFader screenFader = GetComponent<ScreenFader>(); 
+		IEnumerator blackOutScreen = screenFader.FadeToBlack();
+		while (blackOutScreen.MoveNext()){yield return blackOutScreen.Current;}
+
 		Application.LoadLevel ("test");
 	}
 
-	void reloadMenu()
+	void ReloadMenu()
 	{
 		Application.LoadLevel ("Main_Menu");
 	}

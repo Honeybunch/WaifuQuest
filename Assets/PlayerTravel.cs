@@ -14,6 +14,10 @@ public class PlayerTravel : MonoBehaviour
 		traveling = false;
 
 		screenFader = Camera.main.GetComponent<ScreenFader>();
+
+		//We've loaded from the main menu, lets fade in
+		screenFader.alpha = 1.0f;
+		StartCoroutine(screenFader.FadeToClear());
 	}
 
 	/// <summary>
