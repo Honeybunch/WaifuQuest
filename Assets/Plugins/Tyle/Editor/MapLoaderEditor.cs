@@ -28,8 +28,6 @@ public class MapLoaderEditor : Editor
 {
 	MapLoader loader;
 
-	bool hasResetScene = true;
-
 	//Get the object we're attached to when the user selects said object
 	void OnEnable()
 	{

@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using Newtonsoft.Json;
+using WyrmTale;
 
 public class Combat : MonoBehaviour {
 
@@ -15,9 +15,9 @@ public class Combat : MonoBehaviour {
 	int randomNum3;
 
 	//Create strings for files to load in
-	string file1;
-	string file2;
-	string file3;
+	string line1;
+	string line2;
+	string line3;
 
 	//Variables for enemy
 	int heart = 0;
@@ -33,30 +33,26 @@ public class Combat : MonoBehaviour {
 			randomNum3 = Random.Range(1, 8);
 		}while( randomNum1 == randomNum2 || randomNum1 == randomNum3 || randomNum2 == randomNum3 );
 
-		//Load in files
-		file1 = loadFile("lines.json")[randomNum1];
-		file2 = loadFile("lines.json")[randomNum2];
-		file3 = loadFile("lines.json")[randomNum3];
+		//Load in json from file as a string
+		//TODO: Change where the lines.json is stored
+		string JSONString = System.IO.File.ReadAllText(Application.dataPath + "/../lines.json");
+
+		//Pase JSON
+		JSON LineJSON = new JSON();
+		LineJSON.serialized = JSONString;
+
+		//Parse lines from JSON
+		string[] lines = LineJSON.ToArray<string>("options");
+
+		line1 = lines[randomNum1];
+		line2 = lines[randomNum2];
+		line3 = lines[randomNum3];
+
+
 	}
 	
 	// Update is called once per frame
 	void Update () {
-	}
-
-	List<string> loadFile(string fileName)
-	{
-		//Read in the json file and add each value to the list
-		JsonTextReader reader = new JsonTextReader(new StreamReader(fileName));
-		while( reader.Read() )
-		{
-			if( reader.Value != null )
-			{
-				//print (reader.Value);
-				print (reader.TokenType);
-				list.Add(reader.Value.ToString());
-			}
-		}
-		return list;
 	}
 
 	void OnGUI()
@@ -77,7 +73,7 @@ public class Combat : MonoBehaviour {
 		GUI.Label(new Rect(300, 30, 200, 40), "Hearts: " + heart);
 
 		//Print out the randomized dialogue options
-		if( GUI.Button(new Rect(10, 20, 200, 40), file1) )
+		if( GUI.Button(new Rect(10, 20, 200, 40), line1) )
 		{
 			if( randomNum1 < 4 )
 			{
@@ -94,7 +90,7 @@ public class Combat : MonoBehaviour {
 			Start();
 		}
 
-		if( GUI.Button(new Rect(10, 60, 200, 40), file2) )
+		if( GUI.Button(new Rect(10, 60, 200, 40), line2) )
 		{
 			if( randomNum2 < 4 )
 			{
@@ -110,7 +106,7 @@ public class Combat : MonoBehaviour {
 			}
 			Start();
 		}
-		if ( GUI.Button(new Rect(10, 100, 200, 40), file3) )
+		if ( GUI.Button(new Rect(10, 100, 200, 40), line3) )
 		{
 			if( randomNum2 < 4 )
 			{

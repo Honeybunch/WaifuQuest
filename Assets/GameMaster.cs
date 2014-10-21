@@ -12,15 +12,15 @@ public class GameMaster : MonoBehaviour {
 	}
 	GameState state = GameState.Map;
 
-	void onGUI(){
+	void OnGUI(){
 		switch(state){
 		case GameState.Map:
 			break;
 		case GameState.Battle:
 			//Draw BG
-			GUI.DrawTexture(Rect(0,0,Screen.width,Screen.height), backgroundTetxure);
+			GUI.DrawTexture(new Rect(0,0,Screen.width,Screen.height), backgroundTexture, ScaleMode.ScaleToFit);
 			//Draw Enemy
-			GUI.DrawTexture(Rect(Screen.width/4, 0, enemySprite.width, enemySprite.height), enemySprite, 1);
+			GUI.DrawTexture(new Rect(Screen.width/4, 0, enemySprite.width, enemySprite.height), enemySprite, ScaleMode.ScaleToFit);
 			//Battle GUI
 			break;
 		}
