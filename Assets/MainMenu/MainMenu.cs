@@ -32,13 +32,13 @@ public class MainMenu : MonoBehaviour {
 			if (GUI.Button (new Rect(Screen.width * .25f, Screen.height * .4f, Screen.width * .25f, Screen.height * .1f), "Male"))
 			{
 				gender = "male";
-				//reloadMenu();
+				print(gender);
 		
 			}
 			if (GUI.Button (new Rect(Screen.width * .5f, Screen.height * .4f, Screen.width * .25f, Screen.height * .1f), "Female"))
 			{
 				gender = "female";
-				//reloadMenu();
+				print(gender);
 				
 			}
 			if (GUI.Button (new Rect(Screen.width * .25f, Screen.height * .5f, Screen.width * .5f, Screen.height * .1f), "Quit"))
