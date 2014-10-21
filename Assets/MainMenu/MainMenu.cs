@@ -6,6 +6,7 @@ public class MainMenu : MonoBehaviour {
 
 	public Texture backgroundTexture;
 	public Texture optionsTexture;
+	public static string gender = "male";
 
 	public enum menuState
 	{
@@ -28,11 +29,17 @@ public class MainMenu : MonoBehaviour {
 				StartCoroutine(LoadGame());
 			}
 			
-			if (GUI.Button (new Rect(Screen.width * .25f, Screen.height * .4f, Screen.width * .5f, Screen.height * .1f), "Options"))
+			if (GUI.Button (new Rect(Screen.width * .25f, Screen.height * .4f, Screen.width * .25f, Screen.height * .1f), "Male"))
 			{
-				currentState = menuState.Options;
+				gender = "male";
 				//reloadMenu();
 		
+			}
+			if (GUI.Button (new Rect(Screen.width * .5f, Screen.height * .4f, Screen.width * .25f, Screen.height * .1f), "Female"))
+			{
+				gender = "female";
+				//reloadMenu();
+				
 			}
 			if (GUI.Button (new Rect(Screen.width * .25f, Screen.height * .5f, Screen.width * .5f, Screen.height * .1f), "Quit"))
 			{
