@@ -2,7 +2,9 @@ fileFormatVersion: 2
 guid: c1b2b76d0b780a74986b67019fee21ce
 MonoImporter:
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - backgroundTexture: {fileID: 2800000, guid: 2725009f20aaaca428875670b3aec554, type: 3}
+  - enemySprite: {fileID: 2800000, guid: 279dc8787b8b2e649a491c4e136dfe54, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

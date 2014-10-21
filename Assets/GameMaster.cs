@@ -5,14 +5,16 @@ public class GameMaster : MonoBehaviour {
 
 	public Texture backgroundTexture;
 	public Texture enemySprite;
+	public GUISkin buttonSkin;
 
 	public enum GameState{
 		Map,
 		Battle
 	}
-	GameState state = GameState.Map;
+	GameState state = GameState.Battle;
 
 	void OnGUI(){
+		GUI.skin = buttonSkin;
 		switch(state){
 		case GameState.Map:
 			break;
@@ -20,16 +22,13 @@ public class GameMaster : MonoBehaviour {
 			//Draw BG
 			GUI.DrawTexture(new Rect(0,0,Screen.width,Screen.height), backgroundTexture, ScaleMode.ScaleToFit);
 			//Draw Enemy
-			GUI.DrawTexture(new Rect(Screen.width/4, 0, enemySprite.width, enemySprite.height), enemySprite, ScaleMode.ScaleToFit);
+			GUI.DrawTexture(new Rect(Screen.width - Screen.width/2, 200, enemySprite.width, enemySprite.height), enemySprite, ScaleMode.StretchToFill);
 			//Battle GUI
 			break;
 		}
 	}
-	/*
-	 * 
-	 * Battle Code
-	 * 
-	 */
+
+
 
 	/*void SetUpBattle(){
 		//Load in enemy image
