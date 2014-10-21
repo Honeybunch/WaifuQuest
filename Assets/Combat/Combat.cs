@@ -14,6 +14,11 @@ public class Combat : MonoBehaviour {
 	int randomNum2;
 	int randomNum3;
 
+	//Random numbers used to generate differnt types
+	int randomType1;
+	int randomType2;
+	int randomType3;
+
 	//Create strings for files to load in
 	string line1;
 	string line2;
@@ -25,6 +30,14 @@ public class Combat : MonoBehaviour {
 	
 	// Use this for initialization
 	void Start () {
+		//Ensure two types are not the same
+		do
+		{ 
+			randomType1 = Random.Range(1, 5);
+			randomType2 = Random.Range(1, 5);
+			randomType3 = Random.Range(1, 5);
+		}while( randomType1 == randomType2 || randomType1 == randomType3 || randomType2 == randomType3 );
+
 		//Ensure two responses are not the same
 		do
 		{ 
@@ -42,11 +55,80 @@ public class Combat : MonoBehaviour {
 		LineJSON.serialized = JSONString;
 
 		//Parse lines from JSON
-		string[] lines = LineJSON.ToArray<string>("options");
+		string[] lines1;
+		string[] lines2;
+		string[] lines3;
 
-		line1 = lines[randomNum1];
-		line2 = lines[randomNum2];
-		line3 = lines[randomNum3];
+		//Randomly choose enemy type and assign responses
+		switch(randomType1)
+		{
+		default:
+			lines1 = LineJSON.ToArray<string>("Genki");
+			break;
+		case 1:
+			lines1 = LineJSON.ToArray<string>("Genki");
+			break;
+		case 2:
+			lines1 = LineJSON.ToArray<string>("Kuudere");
+			break;
+		case 3:
+			lines1 = LineJSON.ToArray<string>("Moe");
+			break;
+		case 4:
+			lines1 = LineJSON.ToArray<string>("Tsundere");
+			break;
+		case 5:
+			lines1 = LineJSON.ToArray<string>("Yandere");
+			break;
+		}
+
+		switch(randomType2)
+		{
+		default:
+			lines2 = LineJSON.ToArray<string>("Genki");
+			break;
+		case 1:
+			lines2 = LineJSON.ToArray<string>("Genki");
+			break;
+		case 2:
+			lines2 = LineJSON.ToArray<string>("Kuudere");
+			break;
+		case 3:
+			lines2 = LineJSON.ToArray<string>("Moe");
+			break;
+		case 4:
+			lines2 = LineJSON.ToArray<string>("Tsundere");
+			break;
+		case 5:
+			lines2 = LineJSON.ToArray<string>("Yandere");
+			break;
+		}
+
+		switch(randomType3)
+		{
+		default:
+			lines3 = LineJSON.ToArray<string>("Genki");
+			break;
+		case 1:
+			lines3 = LineJSON.ToArray<string>("Genki");
+			break;
+		case 2:
+			lines3 = LineJSON.ToArray<string>("Kuudere");
+			break;
+		case 3:
+			lines3 = LineJSON.ToArray<string>("Moe");
+			break;
+		case 4:
+			lines3 = LineJSON.ToArray<string>("Tsundere");
+			break;
+		case 5:
+			lines3 = LineJSON.ToArray<string>("Yandere");
+			break;
+		}
+	
+		line1 = lines1[randomNum1];
+		line2 = lines2[randomNum2];
+		line3 = lines3[randomNum3];
 
 
 	}

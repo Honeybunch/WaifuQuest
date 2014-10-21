@@ -10,4 +10,59 @@
 	"Good Evening!",
 	"Allow me to introduce myself"
   ]
+  
+  "Moe": [
+    "Moe1",
+    "Moe2",
+    "Moe3",
+	"Moe4",
+	"Moe5",
+	"Moe6",
+	"Moe7",
+	"Moe8",
+  ]
+  
+  "Genki": [
+    "Genki1",
+    "Genki2",
+    "Genki3",
+	"Genki4",
+	"Genki5",
+	"Genki6",
+	"Genki7",
+	"Genki8",
+  ]
+  
+  "Kuudere": [
+    "Kuudere1",
+    "Kuudere2",
+    "Kuudere3",
+	"Kuudere4",
+	"Kuudere5",
+	"Kuudere6",
+	"Kuudere7",
+	"Kuudere8",
+  ]
+  
+  "Tsundere": [
+    "Tsundere1",
+    "Tsundere2",
+    "Tsundere3",
+	"Tsundere4",
+	"Tsundere5",
+	"Tsundere6",
+	"Tsundere7",
+	"Tsundere8",
+  ]
+  
+  "Yandere": [
+    "Yandere1",
+    "Yandere2",
+    "Yandere3",
+	"Yandere4",
+	"Yandere5",
+	"Yandere6",
+	"Yandere7",
+	"Yandere8",
+  ]
 }
