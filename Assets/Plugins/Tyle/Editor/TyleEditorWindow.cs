@@ -565,9 +565,12 @@ public class TyleEditorWindow : EditorWindow
 	void GetSelectedTexture()
 	{
 		//Set the selected texture
-		selectedTexture = textureList[selectedTextureIndex];
+		if(textureList.Count > 0)
+		{
+			selectedTexture = textureList[selectedTextureIndex];
 		
-		brushSize = selectedTexture.width;
+			brushSize = selectedTexture.width;
+		}
 	}
 
 	/// <summary>

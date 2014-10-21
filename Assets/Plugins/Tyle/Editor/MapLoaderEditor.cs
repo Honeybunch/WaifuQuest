@@ -34,11 +34,6 @@ public class MapLoaderEditor : Editor
 		loader = (MapLoader)target;
 	}
 
-	void OnDestroy()
-	{
-		Debug.Log("Test");
-	}
-
 	public override void OnInspectorGUI()
 	{
 		string mapName = loader.mapName;
