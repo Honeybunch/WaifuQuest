@@ -118,6 +118,8 @@ public class GameMaster : MonoBehaviour {
 	/// Setups the battle.
 	/// </summary>
 	public void SetupBattle(){
+		playerHp = 10;
+
 		enemyHp = 20;
 		//enemyType = Random.Range(1,6);
 		enemyDead = false;
