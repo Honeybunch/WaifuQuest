@@ -4,7 +4,8 @@ MonoImporter:
   serializedVersion: 2
   defaultReferences:
   - backgroundTexture: {fileID: 2800000, guid: 2725009f20aaaca428875670b3aec554, type: 3}
-  - enemySprite: {fileID: 2800000, guid: 279dc8787b8b2e649a491c4e136dfe54, type: 3}
+  - enemySprite: {instanceID: 0}
+  - buttonSkin: {fileID: 11400000, guid: b0bb0621f0b01754c84f87f8381473de, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
