@@ -10,13 +10,18 @@ public class GameMaster : MonoBehaviour {
 	public Texture enemySprite;
 	public GUISkin buttonSkin;
 
+	public GameState State
+	{
+		get{return state;}
+	}
+
 	public enum GameState{
 		Map,
 		Battle
 	}
 
 	//Current State
-	GameState state = GameState.Battle;
+	GameState state = GameState.Map;
 
 	//Enemy Vars
 	int enemyHp;
@@ -124,7 +129,7 @@ public class GameMaster : MonoBehaviour {
 	/// <summary>
 	/// Setups the battle.
 	/// </summary>
-	void SetupBattle(){
+	public void SetupBattle(){
 		enemyHp = 10;
 		enemyType = Random.Range(1,6);
 		//enemySprite -> load from file (tim or arsen)

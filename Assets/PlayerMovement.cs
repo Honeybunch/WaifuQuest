@@ -29,19 +29,46 @@ public class PlayerMovement : MonoBehaviour
 {
 	public float speed = 200.0f;
 
+	private GameMaster gameMaster;
+
 	private Vector3 velocity;
 	private PlayerTravel playerTravel;
+
+	private float distanceToBattle;
+	private float distanceTraveled;
+	private Vector3 previousPosition;
 
 	// Use this for initialization
 	void Start () 
 	{
 		velocity = Vector3.zero;
+
+		//Get reference to game master so we can enter battle
+		GameObject gameMasterObject = (GameObject)GameObject.Find("GameMaster");
+		gameMaster = gameMasterObject.GetComponent<GameMaster>();
+
 		playerTravel = GetComponent<PlayerTravel>();
+
+		distanceToBattle = NewRandomDistanceToBattle();
+
+		previousPosition = this.transform.position;
+	}
+
+	int NewRandomDistanceToBattle()
+	{
+		return Random.Range(10,30);
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
+		//Don't update if we're not on the overworld
+		if(gameMaster.State != GameMaster.GameState.Map)
+		{
+			rigidbody2D.velocity = Vector3.zero;
+			return;
+		}
+
 		//Only update movement if we're not traveling between maps
 		if(playerTravel.traveling)
 		{
@@ -67,5 +94,23 @@ public class PlayerMovement : MonoBehaviour
 			Application.LoadLevel ("Main_Menu");
 
 		rigidbody2D.velocity = (velocity * Time.deltaTime);
+
+		if(transform.position != previousPosition)
+		{
+			//Add on to the distance traveled
+			distanceTraveled += Mathf.Abs(Vector3.Distance(transform.position, previousPosition));
+
+			//Store position 
+			previousPosition = this.transform.position;
+
+			//If we've gone far enough, start a battle
+			if(distanceTraveled >= distanceToBattle)
+			{
+				distanceTraveled = 0;
+
+				gameMaster.SetupBattle();
+			}
+		}
+
 	}
 }
