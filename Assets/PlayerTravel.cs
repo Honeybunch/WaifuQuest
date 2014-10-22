@@ -7,6 +7,7 @@ public class PlayerTravel : MonoBehaviour
 
 	bool canTravel;
 	ScreenFader screenFader;
+	PlayerMovement playerMovement;
 
 	void Start()
 	{
@@ -14,6 +15,7 @@ public class PlayerTravel : MonoBehaviour
 		traveling = false;
 
 		screenFader = Camera.main.GetComponent<ScreenFader>();
+		playerMovement = gameObject.GetComponent<PlayerMovement>();
 
 		//We've loaded from the main menu, lets fade in
 		screenFader.alpha = 1.0f;
@@ -37,6 +39,9 @@ public class PlayerTravel : MonoBehaviour
 		
 		Map map = Map.DeserializeMap(mapJson);
 		canTravel = false;
+
+		//reset the player movment counter when we hit the trigger so that battles don't accidentally happen
+		playerMovement.distanceTraveled = 0;
 
 		StartCoroutine(LoadMap(map, mapName));
 	}

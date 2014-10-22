@@ -28,14 +28,15 @@ using System.Collections;
 public class PlayerMovement : MonoBehaviour 
 {
 	public float speed = 200.0f;
+	public float distanceTraveled;
 
 	private GameMaster gameMaster;
 
 	private Vector3 velocity;
 	private PlayerTravel playerTravel;
 
+	private ScreenFader screenFader;
 	private float distanceToBattle;
-	private float distanceTraveled;
 	private Vector3 previousPosition;
 
 	// Use this for initialization
@@ -48,6 +49,7 @@ public class PlayerMovement : MonoBehaviour
 		gameMaster = gameMasterObject.GetComponent<GameMaster>();
 
 		playerTravel = GetComponent<PlayerTravel>();
+		screenFader = Camera.main.GetComponent<ScreenFader>();
 
 		distanceToBattle = NewRandomDistanceToBattle();
 
@@ -69,48 +71,73 @@ public class PlayerMovement : MonoBehaviour
 			return;
 		}
 
+		HandleMovement();
+
+		CheckForBattle();
+	}
+
+	void HandleMovement()
+	{
 		//Only update movement if we're not traveling between maps
 		if(playerTravel.traveling)
 		{
 			rigidbody2D.velocity = Vector2.zero;
 			return;
 		}
-
+		
 		velocity = Vector3.zero;
-
+		
 		//Get Key input in 4 directions
 		if(Input.GetKey(KeyCode.W))
 			velocity.y = speed;
-
+		
 		if(Input.GetKey(KeyCode.A))
 			velocity.x = -speed;
-
+		
 		if(Input.GetKey(KeyCode.S))
 			velocity.y = -speed;
-
+		
 		if(Input.GetKey(KeyCode.D))
 			velocity.x = speed;
 		if(Input.GetKey (KeyCode.Escape))
 			Application.LoadLevel ("Main_Menu");
-
+		
 		rigidbody2D.velocity = (velocity * Time.deltaTime);
+	}
 
+	void CheckForBattle()
+	{
 		if(transform.position != previousPosition)
 		{
 			//Add on to the distance traveled
 			distanceTraveled += Mathf.Abs(Vector3.Distance(transform.position, previousPosition));
-
+			
 			//Store position 
 			previousPosition = this.transform.position;
-
+			
 			//If we've gone far enough, start a battle
 			if(distanceTraveled >= distanceToBattle)
 			{
 				distanceTraveled = 0;
-
-				gameMaster.SetupBattle();
+				
+				StartCoroutine(StartBattle());
 			}
 		}
+	}
 
+	IEnumerator StartBattle()
+	{
+		//Wait to fade to black
+		IEnumerator blackOutScreen = screenFader.FadeToBlack();
+		while (blackOutScreen.MoveNext()) yield return blackOutScreen.Current;
+
+		//Set the battle state
+		gameMaster.SetupBattle();
+
+		//Wait to clear the screen before we allow the player control again
+		IEnumerator clearScreen = screenFader.FadeToClear();
+		while (clearScreen.MoveNext()) yield return clearScreen.Current;
+
+		yield return null;
 	}
 }
