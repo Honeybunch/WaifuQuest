@@ -5,7 +5,6 @@ using System.Collections;
 public class MainMenu : MonoBehaviour {
 
 	public Texture backgroundTexture;
-	public Texture optionsTexture;
 	public static string gender = "male";
 
 	public enum menuState
