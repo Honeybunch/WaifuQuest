@@ -110,7 +110,7 @@ public class PlayerMovement : MonoBehaviour
 		if(transform.position != previousPosition)
 		{
 			//Add on to the distance traveled
-			distanceTraveled += Mathf.Abs(Vector3.Distance(transform.position, previousPosition));
+			//distanceTraveled += Mathf.Abs(Vector3.Distance(transform.position, previousPosition));
 			
 			//Store position 
 			previousPosition = this.transform.position;
@@ -119,6 +119,7 @@ public class PlayerMovement : MonoBehaviour
 			if(distanceTraveled >= distanceToBattle)
 			{
 				distanceTraveled = 0;
+				velocity = Vector3.zero;
 				
 				StartCoroutine(StartBattle());
 			}
@@ -127,6 +128,9 @@ public class PlayerMovement : MonoBehaviour
 
 	IEnumerator StartBattle()
 	{
+		screenFader.fadeSpeed = 0.05f;
+		playerTravel.traveling = true;
+
 		//Wait to fade to black
 		IEnumerator blackOutScreen = screenFader.FadeToBlack();
 		while (blackOutScreen.MoveNext()) yield return blackOutScreen.Current;
@@ -137,6 +141,8 @@ public class PlayerMovement : MonoBehaviour
 		//Wait to clear the screen before we allow the player control again
 		IEnumerator clearScreen = screenFader.FadeToClear();
 		while (clearScreen.MoveNext()) yield return clearScreen.Current;
+
+		playerTravel.traveling = false;
 
 		yield return null;
 	}

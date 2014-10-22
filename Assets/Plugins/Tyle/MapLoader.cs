@@ -39,6 +39,10 @@ public class MapLoader : MonoBehaviour
 
 		GameObject mapPlane = GameObject.CreatePrimitive(PrimitiveType.Quad);
 
+		//Replace the mesh collider with a trigger
+		DestroyImmediate(mapPlane.GetComponent<MeshCollider>());
+		mapPlane.AddComponent<BoxCollider2D>().isTrigger = true;
+
 		mapPlane.name = "NewMap";
 
 		//Set size of the plane to be resonable in the game world

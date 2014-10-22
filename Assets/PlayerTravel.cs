@@ -9,10 +9,12 @@ public class PlayerTravel : MonoBehaviour
 	ScreenFader screenFader;
 	PlayerMovement playerMovement;
 
+	string lastMapFrom;
+	string lastMapTo;
+
 	void Start()
 	{
 		canTravel = true;
-		traveling = false;
 
 		screenFader = Camera.main.GetComponent<ScreenFader>();
 		playerMovement = gameObject.GetComponent<PlayerMovement>();
@@ -28,29 +30,42 @@ public class PlayerTravel : MonoBehaviour
 	void OnTriggerEnter2D(Collider2D collider)
 	{
 		GameObject triggerObject = collider.gameObject;
-		TriggerProperties triggerProperties = triggerObject.GetComponent<TriggerProperties>();
+		TriggerProperties trigger = triggerObject.GetComponent<TriggerProperties>();
 
-		//Don't do anything if we're already enroute
-		if(!canTravel)
+		if(trigger == null)
 			return;
 
-		string mapName = triggerProperties.travelTo;
-		string mapJson = System.IO.File.ReadAllText(Application.dataPath + "/Resources/Maps/" + mapName + ".map"); 
-		
-		Map map = Map.DeserializeMap(mapJson);
-		canTravel = false;
+		//Handle travel triggers
+		if(trigger.type == TriggerType.TRAVEL)
+		{
+			//Don't do anything if we're already enroute
+			if(!canTravel)
+				return;
+			
+			canTravel = false;
+			
+			string nextMapName = trigger.travelTo;
+			string currentMapName = trigger.travelFrom;
+			string mapJson = System.IO.File.ReadAllText(Application.dataPath + "/Resources/Maps/" + nextMapName + ".map"); 
+			
+			Map map = Map.DeserializeMap(mapJson);
+			
+			//reset the player movment counter when we hit the trigger so that battles don't accidentally happen
+			playerMovement.distanceTraveled = 0;
 
-		//reset the player movment counter when we hit the trigger so that battles don't accidentally happen
-		playerMovement.distanceTraveled = 0;
-
-		StartCoroutine(LoadMap(map, mapName));
+			StartCoroutine(LoadMap(map, nextMapName, currentMapName));
+		}
+		else if(trigger.type == TriggerType.EVENT)
+		{
+			//TODO: Handle event triggers
+		}
 	}
 
 	/// <summary>
 	/// Waits for the map loading coroutine to end and then finalizes the player position
 	/// </summary>
-	IEnumerator LoadMap(Map map, string tileToLoadAt)
-	{
+	IEnumerator LoadMap(Map map, string currentMapName, string mapTarget)
+	{		
 		//Wait a bit just so it doesn't immediately interrupt movement
 		yield return new WaitForSeconds(0.3f);
 		traveling = true;
@@ -72,7 +87,7 @@ public class PlayerTravel : MonoBehaviour
 			{
 				TriggerProperties trigger = g.GetComponent<TriggerProperties>();
 
-				if(trigger != null && trigger.travelFrom == tileToLoadAt)
+				if(trigger != null && trigger.travelFrom == currentMapName && trigger.travelTo == mapTarget)
 				{
 					transform.position = new Vector3(g.transform.position.x, g.transform.position.y, -0.01f);
 					break;
@@ -85,13 +100,32 @@ public class PlayerTravel : MonoBehaviour
 		while (clearScreen.MoveNext()) yield return clearScreen.Current;
 
 		traveling = false;
+		lastMapTo = mapTarget;
+		lastMapFrom = currentMapName;
 
 		yield return null;
 	}
 
 	void OnTriggerExit2D(Collider2D collider)
 	{
-		canTravel = true;
+		Debug.Log(collider.gameObject.name);
+
+		//If we leave the map trigger, go back to the previous map
+		if(collider.gameObject.name == "Map")
+		{
+			if(!string.IsNullOrEmpty(lastMapTo))
+			{
+				canTravel = false;
+				traveling = true;
+				string mapJson = System.IO.File.ReadAllText(Application.dataPath + "/Resources/Maps/" + lastMapTo + ".map"); 
+
+				Map map = Map.DeserializeMap(mapJson);
+
+				StartCoroutine(LoadMap(map, lastMapTo , lastMapFrom));
+			}
+		}
+		else if(!traveling)
+			canTravel = true;
 	}
 
 }
