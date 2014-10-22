@@ -107,11 +107,11 @@ public class PlayerMovement : MonoBehaviour
 
 	void CheckForBattle()
 	{
-		if(transform.position != previousPosition)
+		if(transform.position != previousPosition && !playerTravel.traveling)
 		{
 			//Add on to the distance traveled
-			//distanceTraveled += Mathf.Abs(Vector3.Distance(transform.position, previousPosition));
-			
+			distanceTraveled += Mathf.Abs(Vector3.Distance(transform.position, previousPosition));
+
 			//Store position 
 			previousPosition = this.transform.position;
 			
@@ -123,6 +123,12 @@ public class PlayerMovement : MonoBehaviour
 				
 				StartCoroutine(StartBattle());
 			}
+		}
+
+		if(playerTravel.traveling)
+		{
+			//While we're traveling, update the previous position so that the distance traveled won't change
+			previousPosition = transform.position;
 		}
 	}
 

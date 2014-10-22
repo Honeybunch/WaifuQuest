@@ -66,6 +66,8 @@ public class PlayerTravel : MonoBehaviour
 	/// </summary>
 	IEnumerator LoadMap(Map map, string currentMapName, string mapTarget)
 	{		
+		screenFader.fadeSpeed = 0.2f;
+
 		//Wait a bit just so it doesn't immediately interrupt movement
 		yield return new WaitForSeconds(0.3f);
 		traveling = true;
@@ -108,8 +110,6 @@ public class PlayerTravel : MonoBehaviour
 
 	void OnTriggerExit2D(Collider2D collider)
 	{
-		Debug.Log(collider.gameObject.name);
-
 		//If we leave the map trigger, go back to the previous map
 		if(collider.gameObject.name == "Map")
 		{

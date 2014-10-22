@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -10,14 +11,6 @@ public class MapLoader : MonoBehaviour
 	public string mapName;
 	[HideInInspector]
 	public string mapPath;
-
-
-#if UNITY_EDITOR
-	void OnApplicationQuit()
-	{
-		MapLoaderEditor.LoadMap(mapPath);
-	}
-#endif
 
 	/// <summary>
 	/// Creates a map in the game scene as a plane
@@ -80,12 +73,33 @@ public class MapLoader : MonoBehaviour
 
 		mapTexture.Apply();
 
+		Material mapMaterial = new Material(mapPlane.renderer.sharedMaterial);
+		mapMaterial.mainTexture = mapTexture;
+
 		//Use the shared material only in the editor
-#if UNITY_EDITOR
-		mapPlane.renderer.sharedMaterial.mainTexture = mapTexture;
-#else
-		mapPlane.renderer.material = mapMat;
-#endif
+		if(!Application.isPlaying)
+		{
+			//Save out texture
+			byte[] mapPNGBytes = mapTexture.EncodeToPNG();
+			File.WriteAllBytes(Application.dataPath+"/Resources/Textures/MapTexture.png", mapPNGBytes);
+
+			AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+
+			//Apply saved texture to material
+			Texture2D mapPNG = Resources.Load("Textures/MapTexture") as Texture2D;
+			mapMaterial.mainTexture = mapPNG;
+
+			//Save material to disk
+			AssetDatabase.CreateAsset(mapMaterial, "Assets/Resources/Materials/MapMaterial.mat");
+			AssetDatabase.SaveAssets();
+
+			mapPlane.renderer.sharedMaterial = mapMaterial;
+		}
+		else
+		{
+			mapPlane.renderer.material = mapMaterial;
+		}
+
 
 		//Add the colliders into the scene
 		CreateColliders(map);
