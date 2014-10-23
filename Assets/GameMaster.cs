@@ -140,7 +140,7 @@ public class GameMaster : MonoBehaviour {
 			}
 			break;
 		case GameState.Dead:
-			if( GUI.Button(new Rect(0,0,Screen.width, Screen.height), "You died you fucking moron")){
+			if( GUI.Button(new Rect(0,0,Screen.width, Screen.height), ">The monster overtook you with lust... you have died...")){
 				state = GameState.Map;
 			}
 			break;
@@ -151,6 +151,9 @@ public class GameMaster : MonoBehaviour {
 	/// Setups the battle.
 	/// </summary>
 	public void SetupBattle(){
+		//playtest only
+		playerHp = 10;
+
 		enemyHp = 10;
 		enemyType = Random.Range(1,6);
 		enemyDead = false;
