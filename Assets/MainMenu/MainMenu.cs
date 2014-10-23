@@ -5,6 +5,7 @@ using System.Collections;
 public class MainMenu : MonoBehaviour {
 
 	public Texture backgroundTexture;
+	public Texture logo;
 	public static string gender = "male";
 
 	public enum menuState
@@ -18,29 +19,29 @@ public class MainMenu : MonoBehaviour {
 	void OnGUI()
 	{
 		//Display background texture
-		GUI.DrawTexture(new Rect(0,0,Screen.width, Screen.height),backgroundTexture);
-
+		GUI.DrawTexture(new Rect(0,0,Screen.width, Screen.height),backgroundTexture, ScaleMode.StretchToFill);
+		GUI.DrawTexture(new Rect(Screen.width/2 - logo.width/2, 20, logo.width, logo.height), logo);
 		if(currentState == menuState.Main)	
 		{
 			//display buttons
-			if (GUI.Button (new Rect(Screen.width * .25f, Screen.height * .3f, Screen.width * .5f, Screen.height * .1f), "Start Game "))
+			if (GUI.Button (new Rect(Screen.width * .25f, Screen.height * .4f, Screen.width * .5f, Screen.height * .1f), "Start Game "))
 			{
 				StartCoroutine(LoadGame());
 			}
 			
-			if (GUI.Button (new Rect(Screen.width * .25f, Screen.height * .4f, Screen.width * .25f, Screen.height * .1f), "Male"))
+			if (GUI.Button (new Rect(Screen.width * .25f, Screen.height * .5f, Screen.width * .25f, Screen.height * .1f), "Male"))
 			{
 				gender = "male";
 				print(gender);
 		
 			}
-			if (GUI.Button (new Rect(Screen.width * .5f, Screen.height * .4f, Screen.width * .25f, Screen.height * .1f), "Female"))
+			if (GUI.Button (new Rect(Screen.width * .5f, Screen.height * .5f, Screen.width * .25f, Screen.height * .1f), "Female"))
 			{
 				gender = "female";
 				print(gender);
 				
 			}
-			if (GUI.Button (new Rect(Screen.width * .25f, Screen.height * .5f, Screen.width * .5f, Screen.height * .1f), "Quit"))
+			if (GUI.Button (new Rect(Screen.width * .25f, Screen.height * .6f, Screen.width * .5f, Screen.height * .1f), "Quit"))
 			{
 				currentState = menuState.Quit;
 				Application.Quit();
