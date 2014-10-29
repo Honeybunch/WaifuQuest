@@ -33,14 +33,6 @@ public class PlayerStats : MonoBehaviour {
 		oblique = PlayerPrefs.GetString("oblique");
 		possessive = PlayerPrefs.GetString("possessive");
 		reflexive = PlayerPrefs.GetString("reflexive");
-
-		Debug.Log(playerName);
-		Debug.Log(gender);
-
-		Debug.Log(nominative);
-		Debug.Log(oblique);
-		Debug.Log(possessive);
-		Debug.Log(reflexive);
 	}
 
 }

@@ -132,7 +132,7 @@ public class PlayerMovement : MonoBehaviour
 		}
 	}
 
-	IEnumerator StartBattle()
+	public IEnumerator StartBattle()
 	{
 		screenFader.fadeSpeed = 0.05f;
 		playerTravel.traveling = true;

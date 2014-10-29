@@ -33,7 +33,7 @@ public class GameMaster : MonoBehaviour {
 	BattleState bState = BattleState.PlayerChoice;
 	//Enemy Vars
 	int enemyHp;
-	int enemyType;
+	public int enemyType;
 	bool enemyDead;
 	public Texture enemySprite;
 	int[] numEnemies = {1,1,1,1,1}; //How many enemies of each type have we designed
@@ -182,7 +182,6 @@ public class GameMaster : MonoBehaviour {
 				case BattleState.EnemyDefeated:
 					if(GUI.Button(new Rect(0, Screen.height-100 * 3, Screen.width, 300), ">You defeated the monster, thanks to the power of love!")){
 							state = GameState.Map;
-						Debug.Log("aaaa");
 					}
 					break;
 				}
