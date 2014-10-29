@@ -15,6 +15,7 @@ public class GameMaster : MonoBehaviour {
 	}
 
 	public enum GameState{
+		Start,
 		Map,
 		Battle,
 		Dead,
@@ -22,6 +23,7 @@ public class GameMaster : MonoBehaviour {
 	}
 	//Where are we in the battle
 	private enum BattleState{
+		Start,
 		PlayerAttack,
 		EnemyAttack,
 		PlayerChoice,
@@ -29,11 +31,11 @@ public class GameMaster : MonoBehaviour {
 	}
 
 	//Current States
-	GameState state = GameState.Map;
+	GameState state = GameState.Start;
 	BattleState bState = BattleState.PlayerChoice;
 	//Enemy Vars
 	int enemyHp;
-	int enemyType;
+	public int enemyType;
 	bool enemyDead;
 	public Texture enemySprite;
 	int[] numEnemies = {1,1,1,1,1}; //How many enemies of each type have we designed
@@ -68,6 +70,11 @@ public class GameMaster : MonoBehaviour {
 	void OnGUI(){
 		GUI.skin = buttonSkin;
 		switch(state){
+		case GameState.Start:
+			if( GUI.Button(new Rect(0,0,Screen.width, Screen.height), ">The love crystal has been shattered! The monsters of this land run wild, consumed with passion!\n Only you can dispell the curse of the shattered crystal, through filling their hearts with love\n and collecting the shards!")){
+				state = GameState.Map;
+			}
+			break;
 		case GameState.Map:
 			break;
 		case GameState.Battle:
@@ -85,8 +92,50 @@ public class GameMaster : MonoBehaviour {
 				GUI.Label(new Rect(300, 20, 200, 40), "HP: " + playerHp);
 				GUI.Label(new Rect(300, 30, 200, 40), "Enemy HP: " + enemyHp);
 				switch(bState){
+				case BattleState.Start:
+					string blurb = "";
+					switch(enemyType){
+					case 1:
+						blurb = "They look like they're playing hard to get...";
+						break;
+					case 2:
+						blurb = "They seem really energetic...";
+						break;
+					case 3:
+						blurb = "They're really endearing...";
+						break;
+					case 4:
+						blurb = "They look like they're giving youthe cold shoulder...";
+						break;
+					case 5:
+						blurb = "They like they might like you a little too much...";
+						break;
+					}
+					if(GUI.Button(new Rect(0, Screen.height-100 * 3, Screen.width, 300), ">A monster approaches!\n" + blurb)){
+						bState = BattleState.PlayerChoice;
+						UpdateBattle();
+					}
+					break;
 				case BattleState.EnemyAttack:
-					if(GUI.Button(new Rect(0, Screen.height-100 * 3, Screen.width, 300), ">The monster thrashes with passion! Deals 1 damage.")){
+					string response = "";
+					switch(enemyType){
+					case 1:
+						response = "Go away! B-b-baka!";
+						break;
+					case 2:
+						response = "Let's do our best today!";
+						break;
+					case 3:
+						response = "Do I look cute? Uguu~";
+						break;
+					case 4:
+						response = "...";
+						break;
+					case 5:
+						response = "I hope you never leave :)";
+						break;
+					}
+					if(GUI.Button(new Rect(0, Screen.height-100 * 3, Screen.width, 300), ">\"" + response + "\"\n>The monster thrashes with passion! Deals 1 damage.")){
 						playerHp-=1;
 						bState = BattleState.PlayerChoice;
 						UpdateBattle();
@@ -142,7 +191,6 @@ public class GameMaster : MonoBehaviour {
 				case BattleState.EnemyDefeated:
 					if(GUI.Button(new Rect(0, Screen.height-100 * 3, Screen.width, 300), ">You defeated the monster, thanks to the power of love!")){
 							state = GameState.Map;
-						Debug.Log("aaaa");
 					}
 					break;
 				}
@@ -202,7 +250,7 @@ public class GameMaster : MonoBehaviour {
 			break;
 		}
 		state = GameState.Battle;
-		bState = BattleState.PlayerChoice;
+		bState = BattleState.Start;
 		UpdateBattle();
 	}
 
@@ -464,4 +512,5 @@ public class GameMaster : MonoBehaviour {
 		}
 		return dmg;
 	}
+	
 }

@@ -6,6 +6,7 @@ public class PlayerTravel : MonoBehaviour
 	public bool traveling;
 
 	bool canTravel;
+
 	ScreenFader screenFader;
 	PlayerMovement playerMovement;
 
@@ -57,7 +58,16 @@ public class PlayerTravel : MonoBehaviour
 		}
 		else if(trigger.type == TriggerType.EVENT)
 		{
-			//TODO: Handle event triggers
+			//Handle events specifically
+			if(trigger.eventName == "Boss")
+			{
+				//Start a battle with the enemytype being boss
+				GameMaster gameMaster = GameObject.Find("GameMaster").GetComponent<GameMaster>();
+				PlayerMovement movement = gameObject.GetComponent<PlayerMovement>();
+
+				gameMaster.enemyType = 6;
+				StartCoroutine(movement.StartBattle());
+			}
 		}
 	}
 
