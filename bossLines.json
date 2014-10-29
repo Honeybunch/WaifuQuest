@@ -1,0 +1,14 @@
+{
+	"Boss": [
+		"BossLine 1",
+		"BossLine 2",
+		"BossLine 3"
+	]
+	
+	"Player": [
+		"PlayerLine 1",
+		"PlayerLine 2",
+		"PlayerLine 3"
+	]
+	
+}

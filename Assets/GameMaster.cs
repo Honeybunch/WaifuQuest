@@ -17,15 +17,17 @@ public class GameMaster : MonoBehaviour {
 	public enum GameState{
 		Map,
 		Battle,
-		Dead
+		Dead,
+		Boss
 	}
 	//Where are we in the battle
 	private enum BattleState{
 		PlayerAttack,
 		EnemyAttack,
 		PlayerChoice,
-		EnemyDefeated
+		EnemyDefeated,
 	}
+
 	//Current States
 	GameState state = GameState.Map;
 	BattleState bState = BattleState.PlayerChoice;
@@ -55,6 +57,13 @@ public class GameMaster : MonoBehaviour {
 	string line1;
 	string line2;
 	string line3;
+
+	//String for boss battle
+	string bossLine;
+	string playerLine1;
+	string playerLine2;
+	string playerLine3; 
+
 	#endregion Combat Vars
 	void OnGUI(){
 		GUI.skin = buttonSkin;
@@ -144,6 +153,23 @@ public class GameMaster : MonoBehaviour {
 				state = GameState.Map;
 			}
 			break;
+
+		case GameState.Boss:
+			BossBattle();
+
+			if( GUI.Button(new Rect(0, Screen.height-100*3, Screen.width, 100), playerLine1) ){
+				GUI.Button(new Rect(0, Screen.height-100*3, Screen.width, 100), bossLine);
+			}
+
+			if( GUI.Button(new Rect(0, Screen.height-100*2, Screen.width, 100), playerLine2) ){
+				GUI.Button(new Rect(0, Screen.height-100*2, Screen.width, 100), bossLine);
+			}
+
+			if( GUI.Button(new Rect(0, Screen.height-100, Screen.width, 100), playerLine3) ){
+				GUI.Button(new Rect(0, Screen.height-100, Screen.width, 100), bossLine);
+			}
+			break;
+
 		}
 	}
 
@@ -293,6 +319,29 @@ public class GameMaster : MonoBehaviour {
 			playerHp = 0;
 			playerDead = true;
 		}
+	}
+
+	void BossBattle(){
+		//Load in json from file as a string
+		string JSONString = System.IO.File.ReadAllText(Application.dataPath + "/../bossLines.json");
+		
+		//Pase JSON
+		JSON LineJSON = new JSON();
+		LineJSON.serialized = JSONString;
+		
+		//Parse Lines from JSON
+		string[] bossLines;
+		string[] playerLines;
+
+		//Assign lines
+		bossLines = LineJSON.ToArray<string>("Boss");
+		playerLines = LineJSON.ToArray<string>("Player");
+		bossLine = bossLines[0];
+		playerLine1 = playerLines[0];
+		playerLine2 = playerLines[1];
+		playerLine3 = playerLines[2];
+	
+
 	}
 
 	int CalcDamage(int lineType){
