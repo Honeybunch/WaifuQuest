@@ -29,6 +29,8 @@ public class PlayerMovement : MonoBehaviour
 {
 	public float speed = 200.0f;
 	public float distanceTraveled;
+	public AudioSource backgroundMusic;
+	public AudioSource battleMusic;
 
 	private GameMaster gameMaster;
 
@@ -43,7 +45,8 @@ public class PlayerMovement : MonoBehaviour
 	void Start () 
 	{
 		velocity = Vector3.zero;
-
+		battleMusic.Stop ();
+		backgroundMusic.Play ();
 		//Get reference to game master so we can enter battle
 		GameObject gameMasterObject = (GameObject)GameObject.Find("GameMaster");
 		gameMaster = gameMasterObject.GetComponent<GameMaster>();
@@ -69,6 +72,11 @@ public class PlayerMovement : MonoBehaviour
 		{
 			rigidbody2D.velocity = Vector3.zero;
 			return;
+		}
+		if(battleMusic.isPlaying)
+		{
+			battleMusic.Stop();
+			backgroundMusic.Play ();
 		}
 
 		HandleMovement();
@@ -140,7 +148,8 @@ public class PlayerMovement : MonoBehaviour
 		//Wait to fade to black
 		IEnumerator blackOutScreen = screenFader.FadeToBlack();
 		while (blackOutScreen.MoveNext()) yield return blackOutScreen.Current;
-
+		backgroundMusic.Pause ();
+		battleMusic.Play ();
 		//Set the battle state
 		gameMaster.SetupBattle();
 

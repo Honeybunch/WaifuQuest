@@ -415,4 +415,5 @@ public class GameMaster : MonoBehaviour {
 		}
 		return dmg;
 	}
+	
 }
