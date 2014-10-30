@@ -35,7 +35,6 @@ public class GameMaster : MonoBehaviour {
 	BattleState bState = BattleState.PlayerChoice;
 	//Enemy Vars
 	int enemyHp;
-	bool enemyDead;
 	public int enemyType;
 	public Texture enemySprite;
 	int[] numEnemies = {1,1,1,1,1,1}; //How many enemies of each type have we designed
@@ -81,7 +80,6 @@ public class GameMaster : MonoBehaviour {
 		case GameState.Battle:
 			if(enemyHp <= 0){
 				enemyHp = 0;
-				enemyDead = true;
 				bState = BattleState.EnemyDefeated;
 			}
 			else if(playerHp <= 0){
@@ -241,10 +239,9 @@ public class GameMaster : MonoBehaviour {
 	/// </summary>
 	public void SetupBattle(int optionalType){
 		//playtest only
-		Debug.Log("Setup " + optionalType);
+		//Debug.Log("Setup " + optionalType);
 		playerHp = 10;
 		enemyHp = 10;
-		enemyDead = false;
 		bossProgress = 0;
 		if(optionalType == 0)
 			enemyType = Random.Range(1,6);

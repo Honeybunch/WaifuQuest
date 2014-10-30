@@ -88,7 +88,7 @@ public class MainMenu : MonoBehaviour {
 			}
 
 			bool newFemaleSelected = GUI.Toggle (new Rect(Screen.width * .42f, Screen.height * .45f, Screen.width * .16f, Screen.height * .06f), femaleSelected, "Female", "Button");
-			if(newFemaleSelected != femaleSelected);
+			if(newFemaleSelected != femaleSelected)
 			{
 				femaleSelected = newFemaleSelected;
 
@@ -102,7 +102,7 @@ public class MainMenu : MonoBehaviour {
 			}
 
 			bool newOtherSelected = GUI.Toggle (new Rect(Screen.width * .58f, Screen.height * .45f, Screen.width * .16f, Screen.height * .06f), otherSelected, "Other", "Button");
-			if(newOtherSelected != otherSelected);
+			if(newOtherSelected != otherSelected)
 			{
 				otherSelected = newOtherSelected;
 				

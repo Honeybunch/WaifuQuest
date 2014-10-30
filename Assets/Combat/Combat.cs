@@ -4,11 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using WyrmTale;
 
-public class Combat : MonoBehaviour {
-
-	//List for all the dialogue options
-	List<string> list = new List<string>();
-
+public class Combat : MonoBehaviour
+{
 	//Random numbers used to generate different responses
 	int randomNum1;
 	int randomNum2;

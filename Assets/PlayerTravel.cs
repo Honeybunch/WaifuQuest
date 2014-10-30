@@ -62,7 +62,6 @@ public class PlayerTravel : MonoBehaviour
 			if(trigger.eventName == "Boss")
 			{
 				//Start a battle with the enemytype being boss
-				GameMaster gameMaster = GameObject.Find("GameMaster").GetComponent<GameMaster>();
 				PlayerMovement movement = gameObject.GetComponent<PlayerMovement>();
 
 				StartCoroutine(movement.StartBattle(6));
