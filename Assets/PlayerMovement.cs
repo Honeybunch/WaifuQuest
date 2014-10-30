@@ -129,7 +129,7 @@ public class PlayerMovement : MonoBehaviour
 				distanceTraveled = 0;
 				velocity = Vector3.zero;
 				
-				StartCoroutine(StartBattle());
+				StartCoroutine(StartBattle(0));
 			}
 		}
 
@@ -140,7 +140,7 @@ public class PlayerMovement : MonoBehaviour
 		}
 	}
 
-	public IEnumerator StartBattle()
+	public IEnumerator StartBattle(int enemyType)
 	{
 		screenFader.fadeSpeed = 0.05f;
 		playerTravel.traveling = true;
@@ -151,8 +151,7 @@ public class PlayerMovement : MonoBehaviour
 		backgroundMusic.Pause ();
 		battleMusic.Play ();
 		//Set the battle state
-		gameMaster.SetupBattle();
-
+		gameMaster.SetupBattle(enemyType);
 		//Wait to clear the screen before we allow the player control again
 		IEnumerator clearScreen = screenFader.FadeToClear();
 		while (clearScreen.MoveNext()) yield return clearScreen.Current;

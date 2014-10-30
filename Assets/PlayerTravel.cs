@@ -65,8 +65,7 @@ public class PlayerTravel : MonoBehaviour
 				GameMaster gameMaster = GameObject.Find("GameMaster").GetComponent<GameMaster>();
 				PlayerMovement movement = gameObject.GetComponent<PlayerMovement>();
 
-				gameMaster.enemyType = 6;
-				StartCoroutine(movement.StartBattle());
+				StartCoroutine(movement.StartBattle(6));
 			}
 		}
 	}

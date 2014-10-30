@@ -1,14 +1,28 @@
 {
 	"Boss": [
-		"BossLine 1",
-		"BossLine 2",
-		"BossLine 3"
+		">Master, you will never restore the balance of love!",
+		">I'll sweep you right off the earth! Oh- uh, Master.",
+		">Master, shall I bring you a towel to wipe your blood?",
+		">Y-you'll never woo me, Master!",
+		">Master... I-i-impossible!"
 	]
 	
 	"Player": [
-		"PlayerLine 1",
-		"PlayerLine 2",
-		"PlayerLine 3"
+		">Relax for a second...",
+		">You'll never win!",
+		">*Throw a punch*",
+		">You seem stressed... sweeping up too much?",
+		">Love isn't a game!",
+		">*Start crying*",
+		">*Wink*",
+		">Uh... so... ",
+		">You can't defeat me with your tricks!",
+		">You know, you look beautiful in red.",
+		">Get back to hell, Succubus!",
+		">So, do you wanna watch a movie?",
+		">*Lean in close*",
+		">Look, I should go.",
+		">*Walk away*"
 	]
 	
 }
