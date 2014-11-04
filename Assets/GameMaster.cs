@@ -37,7 +37,7 @@ public class GameMaster : MonoBehaviour {
 	int enemyHp;
 	public int enemyType;
 	public Texture enemySprite;
-	int[] numEnemies = {1,1,1,1,1,1}; //How many enemies of each type have we designed
+	int[] numEnemies = {1,1,2,2,1,1}; //How many enemies of each type have we designed
 	//Player Vars
 	int playerHp = 10;
 	bool playerDead = false;

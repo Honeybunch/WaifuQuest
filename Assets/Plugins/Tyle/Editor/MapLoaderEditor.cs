@@ -1,8 +1,8 @@
 ﻿/*
 
-WaifuQuest the JRPG / Visual Novel Hybridization 
+Tyle, a lightweight tile editor for Unity
 
-Copyright (C) 2014 Arsen Tufankjian, Timothy Cotanch, Kyle Martin and Dylan Nelkin
+Copyright (C) 2014 Arsen Tufankjian
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -18,6 +18,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+
+#if UNITY_EDITOR
 
 using UnityEngine;
 using UnityEditor;
@@ -84,3 +86,5 @@ public class MapLoaderEditor : Editor
 		MapLoader.CreateMap(map).MoveNext();
 	}
 }
+
+#endif
