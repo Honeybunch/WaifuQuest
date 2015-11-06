@@ -97,7 +97,7 @@ public class MapLoader : MonoBehaviour
 
 		mapTexture.Apply();
 
-		Material mapMaterial = new Material(mapPlane.renderer.sharedMaterial);
+		Material mapMaterial = new Material(mapPlane.GetComponent<Renderer>().sharedMaterial);
 		mapMaterial.mainTexture = mapTexture;
 
 		#if UNITY_EDITOR
@@ -118,11 +118,11 @@ public class MapLoader : MonoBehaviour
 			AssetDatabase.CreateAsset(mapMaterial, "Assets/Resources/Materials/MapMaterial.mat");
 			AssetDatabase.SaveAssets();
 
-			mapPlane.renderer.sharedMaterial = mapMaterial;
+			mapPlane.GetComponent<Renderer>().sharedMaterial = mapMaterial;
 		}
 		else
 		{
-			mapPlane.renderer.material = mapMaterial;
+			mapPlane.GetComponent<Renderer>().material = mapMaterial;
 		}
 		#else
 
@@ -143,8 +143,8 @@ public class MapLoader : MonoBehaviour
 			if(!t.Passable || t.Trigger)
 			{
 				GameObject specialTile = new GameObject();
-				specialTile.AddComponent("BoxCollider2D");
-				specialTile.AddComponent("Rigidbody2D");
+				specialTile.AddComponent<BoxCollider2D>();
+				specialTile.AddComponent<Rigidbody2D>();
 
 				if(!t.Passable)
 					specialTile.name = "ImpassibleTile";

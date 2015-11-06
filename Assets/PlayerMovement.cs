@@ -70,7 +70,7 @@ public class PlayerMovement : MonoBehaviour
 		//Don't update if we're not on the overworld
 		if(gameMaster.State != GameMaster.GameState.Map)
 		{
-			rigidbody2D.velocity = Vector3.zero;
+			GetComponent<Rigidbody2D>().velocity = Vector3.zero;
 			return;
 		}
 		if(battleMusic.isPlaying)
@@ -89,7 +89,7 @@ public class PlayerMovement : MonoBehaviour
 		//Only update movement if we're not traveling between maps
 		if(playerTravel.traveling)
 		{
-			rigidbody2D.velocity = Vector2.zero;
+			GetComponent<Rigidbody2D>().velocity = Vector2.zero;
 			return;
 		}
 		
@@ -110,7 +110,7 @@ public class PlayerMovement : MonoBehaviour
 		if(Input.GetKey (KeyCode.Escape))
 			Application.LoadLevel ("Main_Menu");
 		
-		rigidbody2D.velocity = (velocity * Time.deltaTime);
+		GetComponent<Rigidbody2D>().velocity = (velocity * Time.deltaTime);
 	}
 
 	void CheckForBattle()

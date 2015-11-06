@@ -47,12 +47,12 @@ public class CameraFollowPlayer : MonoBehaviour
 		Vector3 boundPosition = player.transform.position;
 
 		//Keep the camera so that it will never view outside the map
-		float topMapBound = map.transform.renderer.bounds.center.y + map.transform.renderer.bounds.size.y/2;
-		float leftMapBound = map.transform.renderer.bounds.center.x - map.transform.renderer.bounds.size.x/2;
-		float bottomMapBound = map.transform.renderer.bounds.center.y - map.transform.renderer.bounds.size.y/2;
-		float rightMapBound = map.transform.renderer.bounds.center.x + map.transform.renderer.bounds.size.x/2;
+		float topMapBound = map.transform.GetComponent<Renderer>().bounds.center.y + map.transform.GetComponent<Renderer>().bounds.size.y/2;
+		float leftMapBound = map.transform.GetComponent<Renderer>().bounds.center.x - map.transform.GetComponent<Renderer>().bounds.size.x/2;
+		float bottomMapBound = map.transform.GetComponent<Renderer>().bounds.center.y - map.transform.GetComponent<Renderer>().bounds.size.y/2;
+		float rightMapBound = map.transform.GetComponent<Renderer>().bounds.center.x + map.transform.GetComponent<Renderer>().bounds.size.x/2;
 
-		float verticalExtent = camera.orthographicSize + 1;
+		float verticalExtent = GetComponent<Camera>().orthographicSize + 1;
 		float horizontalExtent = verticalExtent * ((float)Screen.width / (float)Screen.height);
 
 		float boundX = Mathf.Clamp(boundPosition.x, leftMapBound + horizontalExtent, rightMapBound - horizontalExtent);
